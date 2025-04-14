@@ -1,3 +1,5 @@
 gunicorn
 flask
 google-generativeai
+spacy
+nltk
