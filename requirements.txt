@@ -1,3 +1,6 @@
 gunicorn
 flask
 google-generativeai
+spacy
+nltk
+flask_cors
