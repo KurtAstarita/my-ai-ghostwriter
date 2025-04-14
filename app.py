@@ -3,7 +3,7 @@ from AiGhostWriter import get_gemini_flash_output, transform_to_human_like, mode
 from flask_cors import CORS  # Add this line
 
 app = Flask(__name__)
-CORS(app
+CORS(app)
 
 @app.route('/')
 def hello_world():
