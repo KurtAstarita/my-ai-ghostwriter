@@ -9,7 +9,7 @@ function generateContent() {
         prompt: prompt
     };
 
-    fetch('https://kurtastarita.pythonanywhere.com/generate', { // Replace with your actual PythonAnywhere URL
+    fetch('https://my-ai-ghostwriter.onrender.com/generate', { // Replace with your actual PythonAnywhere URL
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
