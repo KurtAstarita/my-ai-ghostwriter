@@ -23,7 +23,7 @@ def hello_world():
     return 'Hello, World!'
 
 @app.route('/generate', methods=['POST'])
-@limiter.limit("5 per minute") # Commenting out rate limiter decorator
+@limiter.limit("5 per minute")
 def generate_content():
     try:
         data = request.get_json()
