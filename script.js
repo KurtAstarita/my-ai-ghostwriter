@@ -2,8 +2,6 @@ const generateForm = document.getElementById('generateForm');
 const generateButton = generateForm.querySelector('button[type="button"]');
 const generatedContent = document.getElementById('generatedContent');
 
-generateButton.addEventListener('click', generateContent);
-
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -30,7 +28,7 @@ function generateContent() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrf_token') // Added CSRF token header
+            'X-CSRFToken': getCookie('csrf_token')
         },
         body: JSON.stringify(data)
     })
@@ -49,3 +47,14 @@ function generateContent() {
         generatedContent.value = 'Error generating content.';
     });
 }
+
+// Fetch CSRF token on page load and then attach the event listener
+fetch('https://my-ai-ghostwriter.onrender.com/csrf_token')
+    .then(response => response.json()) // We don't actually need the JSON response, the cookie will be set
+    .then(() => {
+        generateButton.addEventListener('click', generateContent);
+    })
+    .catch(error => {
+        console.error('Error fetching CSRF token:', error);
+        // Optionally handle the error, e.g., disable the generate button
+    });
