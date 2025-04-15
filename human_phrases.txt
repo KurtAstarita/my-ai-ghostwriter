@@ -8,7 +8,7 @@
 [EMPHASIS] Frankly
 [EMPHASIS] Seriously
 [EMPHASIS] Believe it or not
-[EMPHASIS] Guess what?
+[EMPHASIS] Guess what
 [CASUAL] So
 [CASUAL] Right
 [CASUAL] You know
