@@ -4,7 +4,7 @@ from flask_cors import CORS
 import os
 import logging
 import bleach
-from flask_wtf.csrf import CSRFProtect # Import CSRFProtect
+from flask_wtf.csrf import CSRFProtect, generate_csrf # Import generate_csrf
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
@@ -22,11 +22,11 @@ allowed_attributes = {}
 @app.route('/csrf_token', methods=['GET'])
 def get_csrf_token():
     try:
-        session['_csrf_token']  # Accessing this might trigger generation
-        token = session.get('_csrf_token')
+        token = generate_csrf() # Generate a CSRF token manually
+        session['_csrf_token'] = token # Store it in the session
         return jsonify({'csrf_token': token})
     except Exception as e:
-        logger.error(f"Error accessing or generating CSRF token: {e}")
+        logger.error(f"Error generating and storing CSRF token: {e}")
         return jsonify({'error': 'Failed to initialize CSRF token'}), 500
 
 @app.route('/')
