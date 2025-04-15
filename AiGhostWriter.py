@@ -1,3 +1,41 @@
+import google.generativeai as genai
+ 
+ # Replace with your actual API key
+ GOOGLE_API_KEY = "AIzaSyA__63BnzDRK0vQqcuJkN5MHpgIlQ6WF8A"
+ 
+ # Configure the API key
+ genai.configure(api_key=GOOGLE_API_KEY)
+ 
+ # For text-only input, use the gemini-2.0-flash model
+ model = genai.GenerativeModel('gemini-2.0-flash')
+ 
+ def get_gemini_flash_output(backstory, samples, prompt):
+     """
+     Interacts with the Gemini 2.0 Flash model to get the initial output,
+     with a refined prompt for better stylistic imitation.
+     """
+     combined_context = f"Personal Backstory: {backstory}\n\nWriting Samples:\n{samples}"
+     final_prompt = f"""You are an AI assistant whose primary goal is to write in the style of the user provided in the "Personal Backstory" and "Writing Samples" below. Pay close attention to their tone, vocabulary, sentence structure, and overall writing personality.
+ 
+ Personal Backstory:
+ {backstory}
+ 
+ Writing Samples:
+ {samples}
+ 
+ Now, write a response to the following prompt, ensuring it strongly reflects the user's writing style:
+ 
+ Prompt:
+ {prompt}
+ 
+ Write a response in a similar style, as if it were written by the user themselves."""
+ 
+     try:
+         response = model.generate_content(final_prompt)
+         return response.text
+     except Exception as e:
+         return f"Error generating content: {e}"
+
 import spacy
 import nltk
 from nltk.corpus import wordnet
