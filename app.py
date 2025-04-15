@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, make_response, session
+from flask import Flask, request, jsonify
 from AiGhostWriter import get_gemini_flash_output, transform_to_human_like, model
 from flask_cors import CORS
 import os
@@ -21,13 +21,8 @@ allowed_attributes = {}
 
 @app.route('/csrf_token', methods=['GET'])
 def get_csrf_token():
-    csrf_token = session.get('_csrf_token')
-    if not csrf_token:
-        csrf_token = csrf.generate_csrf()
-        session['_csrf_token'] = csrf_token
-    response = make_response(jsonify({'csrf_token': csrf_token}))
-    response.set_cookie('csrf_token', csrf_token, httponly=True, secure=True, samesite='Strict')
-    return response
+    # We might just need to trigger the CSRF protection to set the cookie
+    return jsonify({'success': True})
 
 @app.route('/')
 def hello_world():
