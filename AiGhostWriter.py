@@ -1,40 +1,40 @@
 import google.generativeai as genai
- 
- # Replace with your actual API key
- GOOGLE_API_KEY = "AIzaSyA__63BnzDRK0vQqcuJkN5MHpgIlQ6WF8A"
- 
- # Configure the API key
- genai.configure(api_key=GOOGLE_API_KEY)
- 
- # For text-only input, use the gemini-2.0-flash model
- model = genai.GenerativeModel('gemini-2.0-flash')
- 
- def get_gemini_flash_output(backstory, samples, prompt):
-     """
-     Interacts with the Gemini 2.0 Flash model to get the initial output,
-     with a refined prompt for better stylistic imitation.
-     """
-     combined_context = f"Personal Backstory: {backstory}\n\nWriting Samples:\n{samples}"
-     final_prompt = f"""You are an AI assistant whose primary goal is to write in the style of the user provided in the "Personal Backstory" and "Writing Samples" below. Pay close attention to their tone, vocabulary, sentence structure, and overall writing personality.
- 
- Personal Backstory:
- {backstory}
- 
- Writing Samples:
- {samples}
- 
- Now, write a response to the following prompt, ensuring it strongly reflects the user's writing style:
- 
- Prompt:
- {prompt}
- 
- Write a response in a similar style, as if it were written by the user themselves."""
- 
-     try:
-         response = model.generate_content(final_prompt)
-         return response.text
-     except Exception as e:
-         return f"Error generating content: {e}"
+
+# Replace with your actual API key
+GOOGLE_API_KEY = "AIzaSyA__63BnzDRK0vQqcuJkN5MHpgIlQ6WF8A"
+
+# Configure the API key
+genai.configure(api_key=GOOGLE_API_KEY)
+
+# For text-only input, use the gemini-2.0-flash model
+model = genai.GenerativeModel('gemini-2.0-flash')
+
+def get_gemini_flash_output(backstory, samples, prompt):
+    """
+    Interacts with the Gemini 2.0 Flash model to get the initial output,
+    with a refined prompt for better stylistic imitation.
+    """
+    combined_context = f"Personal Backstory: {backstory}\n\nWriting Samples:\n{samples}"
+    final_prompt = f"""You are an AI assistant whose primary goal is to write in the style of the user provided in the "Personal Backstory" and "Writing Samples" below. Pay close attention to their tone, vocabulary, sentence structure, and overall writing personality.
+
+Personal Backstory:
+{backstory}
+
+Writing Samples:
+{samples}
+
+Now, write a response to the following prompt, ensuring it strongly reflects the user's writing style:
+
+Prompt:
+{prompt}
+
+Write a response in a similar style, as if it were written by the user themselves."""
+
+    try:
+        response = model.generate_content(final_prompt)
+        return response.text
+    except Exception as e:
+        return f"Error generating content: {e}"
 
 import spacy
 import nltk
@@ -80,7 +80,6 @@ def transform_to_human_like(ai_text, writing_samples):
     print(f"Average sentence length in samples: {avg_sentence_length:.2f} words")
 
     transformed_text = []
-    human_like_phrases = []
     insertion_probability = 0.5  # Slightly reduced
     split_probability = 0.2
     long_sentence_threshold = 20
@@ -91,33 +90,48 @@ def transform_to_human_like(ai_text, writing_samples):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     phrases_file = os.path.join(script_dir, "human_phrases.txt")
 
+    phrase_categories = {
+        "opening": ["Well,", "Alright,", "Listen up,", "So,", "Anyway,"],
+        "transition": ["Furthermore,", "However,", "In addition,", "On the other hand,", "Moreover,", "Nevertheless,", "Despite that,", "Although,", "Yet,", "Still,", "Meanwhile,", "By the way,", "Speaking of which,"],
+        "opinion": ["I think...", "I believe...", "I feel...", "In my opinion,", "From my perspective,", "As far as I can tell,"],
+        "casual": ["You know?", "Right?", "Um,", "Uh,", "Like,", "Basically,", "Essentially,", "So yeah,", "Anyway, yeah,"],
+        "emphasis": ["Honestly,", "Frankly,", "Seriously,", "Believe it or not,", "Guess what?", "You see,"],
+        "closing": ["That's about it,", "In conclusion,", "To summarize,", "Ultimately,", "At the end of the day,", "So there you have it,"],
+        "question": ["Right?", "Huh?"],
+        "explanation": ["What I mean is,", "In other words,", "To put it simply,"],
+    }
+
+    loaded_phrases = {}
     try:
         with open(phrases_file, "r", encoding="utf-8") as f:
             for line in f:
-                phrase = line.strip()
-                if phrase:
-                    human_like_phrases.append(phrase)
+                line = line.strip()
+                if line and "[" in line and "]" in line:
+                    match = re.match(r"\[(.*?)\]\s*(.*)", line)
+                    if match:
+                        category = match.group(1).lower()
+                        phrase = match.group(2).strip()
+                        if category in loaded_phrases:
+                            loaded_phrases[category].append(phrase)
+                        else:
+                            loaded_phrases[category] = [phrase]
+                elif line: # If no category label, add to a default list
+                    if "general" not in loaded_phrases:
+                        loaded_phrases["general"] = []
+                    loaded_phrases["general"].append(line)
+
+        # Update default categories with loaded phrases if available
+        for category, phrases in loaded_phrases.items():
+            if category in phrase_categories:
+                phrase_categories[category].extend(phrases)
+            elif category == "general":
+                # Add general phrases to a few common categories to make them more likely to be used
+                for cat in ["casual", "opinion", "transition"]:
+                    if cat in phrase_categories:
+                        phrase_categories[cat].extend(phrases)
+
     except FileNotFoundError:
         print(f"Error: {phrases_file} not found. Using default phrases.")
-        human_like_phrases = [
-            "You know?", "Well,", "Anyway,", "Look,", "I think...", "It seems...",
-            "Actually,", "To be honest,", "So,", "Right?", "Um,", "Uh,", "Like,",
-            "Basically,", "Essentially,", "In fact,", "As a matter of fact,",
-            "The thing is,", "The point is,", "The truth is,", "Furthermore,",
-            "Moreover,", "In addition,", "On the other hand,", "However,",
-            "Nevertheless,", "Despite that,", "Although,", "Yet,", "Still,",
-            "Meanwhile,", "In the meantime,", "By the way,", "Speaking of which,",
-            "Regarding that,", "As for,", "Then,", "Next,", "After that,",
-            "Before that,", "I believe...", "I feel...", "In my opinion,",
-            "From my perspective,", "As far as I can tell,", "It appears...",
-            "It looks like...", "I suppose...", "I guess...", "Maybe...",
-            "Perhaps...", "Possibly...", "So yeah,", "Anyway, yeah,",
-            "That's about it,", "In conclusion,", "To summarize,", "Ultimately,",
-            "At the end of the day,", "I'm thinking...", "It's like...",
-            "We're going to...", "They're saying...", "He's like...", "She's like...",
-            "Listen,", "Honestly,", "Frankly,", "Seriously,", "Believe it or not,",
-            "Guess what?", "You see,", "I mean,",
-        ]
 
     lines = ai_text.splitlines()
     i = 0
@@ -151,23 +165,31 @@ def transform_to_human_like(ai_text, writing_samples):
 
                     # Insert transition words
                     if random.random() < transition_probability and not processed_paragraph and len(sentence_doc) > 3:
-                        transition = random.choice(transition_words)
-                        sentence_text = transition + ", " + sentence_text.lstrip()
+                        transition_phrase = random.choice(phrase_categories.get("transition", transition_words))
+                        sentence_text = transition_phrase + ", " + sentence_text.lstrip()
 
-                    # Insert human-like phrases
-                    if random.random() < insertion_probability and human_like_phrases and len(sentence_doc) > 2 and not last_phrase_inserted:
-                        phrase_to_add = random.choice(human_like_phrases)
-                        # Insert at the beginning or after a comma/semicolon with some probability
-                        if random.random() < 0.7 or not sentence_text.startswith(tuple(human_like_phrases)):
+                    # Insert human-like phrases based on context
+                    if random.random() < insertion_probability and len(sentence_doc) > 2 and not last_phrase_inserted:
+                        chosen_phrase = None
+                        if i == 0 and random.random() < 0.5: # Beginning of the output
+                            chosen_phrase = random.choice(phrase_categories.get("opening", ["Well,"]))
+                        elif len(transformed_text) > 0 and random.random() < 0.3: # Between paragraphs
+                            chosen_phrase = random.choice(phrase_categories.get("transition", ["Furthermore,"]))
+                        elif random.random() < 0.4: # General casual insertion
+                            possible_categories = ["casual", "opinion", "emphasis", "question", "explanation"]
+                            chosen_category = random.choice(possible_categories)
+                            chosen_phrase = random.choice(phrase_categories.get(chosen_category, ["You know?"]))
+
+                        if chosen_phrase:
                             insert_point = 0
                             possible_points = [m.start() for m in re.finditer(r'[,;]', sentence_text)]
                             if possible_points and random.random() < 0.3:
                                 insert_point = random.choice(possible_points) + 1 # Insert after the punctuation
 
                             if insert_point > 0:
-                                sentence_text = sentence_text[:insert_point].strip() + ", " + phrase_to_add + sentence_text[insert_point:]
+                                sentence_text = sentence_text[:insert_point].strip() + ", " + chosen_phrase + sentence_text[insert_point:]
                             else:
-                                sentence_text = phrase_to_add + ", " + sentence_text.lstrip()
+                                sentence_text = chosen_phrase + ", " + sentence_text.lstrip()
                             last_phrase_inserted = True
                         else:
                             last_phrase_inserted = False # Don't set if we didn't insert
