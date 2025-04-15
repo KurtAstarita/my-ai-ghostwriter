@@ -4,15 +4,14 @@ from flask_cors import CORS
 import os
 import logging
 import bleach
-from flask_wtf.csrf import CSRFProtect, generate_csrf
+# from flask_wtf.csrf import CSRFProtect, generate_csrf, ValidationError # Comment out import
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'your_fallback_secret_key'
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "https://kurtastarita.github.io"}})
-app.config['SESSION_COOKIE_DOMAIN'] = 'my-ai-ghostwriter.onrender.com' # Set to your backend domain
-csrf = CSRFProtect(app) # Initialize CSRF protection
+# csrf = CSRFProtect(app) # Comment out initialization
 limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 
 logging.basicConfig(level=logging.INFO) # Set logging level to INFO
@@ -22,9 +21,9 @@ allowed_attributes = {}
 
 @app.route('/csrf_token', methods=['GET'])
 def get_csrf_token():
-    token = generate_csrf()
-    session['_csrf_token'] = token # Store the token in the session
-    return jsonify({'csrf_token': token})
+    # token = generate_csrf() # Comment out token generation
+    # session['_csrf_token'] = token # Comment out session storage
+    return jsonify({'csrf_token': 'DISABLED'}) # Return a placeholder
 
 @app.route('/')
 def hello_world():
@@ -45,8 +44,15 @@ def generate_content():
             logger.warning("Missing required data")
             return jsonify({'error': 'Missing required data (backstory, samples, or prompt)'}), 400
 
-        csrf.validate_csrf(request.headers.get('X-CSRFToken'))
-        logger.info("CSRF validation successful")
+        # try:
+        #     csrf.validate_csrf(request.headers.get('X-CSRFToken')) # Comment out validation
+        #     logger.info("CSRF validation successful")
+        # except ValidationError as e:
+        #     logger.warning(f"CSRF validation failed: {e}")
+        #     return jsonify({'error': 'CSRF token validation failed'}), 400
+        # except Exception as e:
+        #     logger.error(f"An unexpected error occurred during CSRF validation: {e}")
+        #     return jsonify({'error': 'An unexpected error occurred during CSRF validation.'}), 500
 
         backstory = bleach.clean(backstory, tags=allowed_tags, attributes=allowed_attributes, strip=True)
         samples = bleach.clean(samples, tags=allowed_tags, attributes=allowed_attributes, strip=True)
@@ -57,9 +63,6 @@ def generate_content():
 
         return jsonify({'generated_content': human_like_output})
 
-    except ValidationError as e:
-        logger.warning(f"CSRF validation failed: {e}")
-        return jsonify({'error': 'CSRF token validation failed'}), 400
     except Exception as e:
         logger.error(f"An error occurred during content generation: {e}")
         return jsonify({'error': 'An unexpected error occurred on the server.'}), 500
