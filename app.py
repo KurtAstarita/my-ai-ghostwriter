@@ -21,12 +21,13 @@ allowed_attributes = {}
 
 @app.route('/csrf_token', methods=['GET'])
 def get_csrf_token():
-    token = session.get('_csrf_token')
-    if not token:
-        # We might need to trigger token generation differently.
-        # For now, let's just return an error if it's not there.
-        return jsonify({'error': 'CSRF token not initialized'}), 500
-    return jsonify({'csrf_token': token})
+    try:
+        session['_csrf_token']  # Accessing this might trigger generation
+        token = session.get('_csrf_token')
+        return jsonify({'csrf_token': token})
+    except Exception as e:
+        logger.error(f"Error accessing or generating CSRF token: {e}")
+        return jsonify({'error': 'Failed to initialize CSRF token'}), 500
 
 @app.route('/')
 def hello_world():
