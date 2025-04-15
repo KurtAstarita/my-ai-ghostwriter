@@ -4,14 +4,15 @@ from flask_cors import CORS
 import os
 import logging
 import bleach
-from flask_wtf.csrf import CSRFProtect, generate_csrf # Import generate_csrf
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'your_fallback_secret_key'
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "https://kurtastarita.github.io"}})
-csrf = CSRFProtect(app) # Initialize CSRF protection
+app.config['WTF_CSRF_HEADERS'] = ['X-CSRFToken'] # Tell Flask-WTF to look for this header
+csrf = CSRFProtect(app)
 limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 
 logging.basicConfig(level=logging.ERROR)
@@ -22,8 +23,8 @@ allowed_attributes = {}
 @app.route('/csrf_token', methods=['GET'])
 def get_csrf_token():
     try:
-        token = generate_csrf() # Generate a CSRF token manually
-        session['_csrf_token'] = token # Store it in the session
+        token = generate_csrf()
+        session['_csrf_token'] = token
         return jsonify({'csrf_token': token})
     except Exception as e:
         logger.error(f"Error generating and storing CSRF token: {e}")
