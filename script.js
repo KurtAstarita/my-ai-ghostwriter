@@ -2,6 +2,8 @@ const generateForm = document.getElementById('generateForm');
 const generateButton = generateForm.querySelector('button[type="button"]');
 const generatedContent = document.getElementById('generatedContent');
 
+generateButton.addEventListener('click', generateContent);
+
 function generateContent() {
     const backstory = document.getElementById('backstory').value;
     const samples = document.getElementById('samples').value;
@@ -16,7 +18,7 @@ function generateContent() {
     generateButton.classList.add('generating');
     generateButton.innerText = 'Generating content...';
     generatedContent.classList.add('loading');
-    generatedContent.value = 'Generating... Please wait.'; // Optional: Add a message in the textarea
+    generatedContent.value = 'Generating... Please wait.';
 
     fetch('https://my-ai-ghostwriter.onrender.com/generate', {
         method: 'POST',
