@@ -22,9 +22,6 @@ allowed_attributes = {}
 @app.route('/csrf_token', methods=['GET'])
 def get_csrf_token():
     csrf_token = session.get('_csrf_token')
-    if not csrf_token:
-        csrf_token = csrf._generate_token() # Accessing the internal method (may change in future versions)
-        session['_csrf_token'] = csrf_token
     return jsonify({'csrf_token': csrf_token})
 
 @app.route('/')
