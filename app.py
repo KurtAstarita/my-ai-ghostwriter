@@ -4,7 +4,7 @@ from flask_cors import CORS
 import os
 import logging
 import bleach
-from flask_wtf.csrf import generate_csrf, validate_csrf # Import validate_csrf
+from flask_wtf.csrf import generate_csrf
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
@@ -40,7 +40,8 @@ def generate_content():
         if not backstory or not samples or not prompt:
             return jsonify({'error': 'Missing required data (backstory, samples, or prompt)'}), 400
 
-        if not csrf_token_header or not validate_csrf(csrf_token_header):
+        # Stateless CSRF validation: Generate a new token and compare
+        if not csrf_token_header or csrf_token_header != generate_csrf():
             return jsonify({'error': 'CSRF token validation failed'}), 400
 
         backstory = bleach.clean(backstory, tags=allowed_tags, attributes=allowed_attributes, strip=True)
