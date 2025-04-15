@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken, // Use the stored CSRF token
+                'X-CSRFToken': csrfToken, // Use the fetched CSRF token
             },
             body: JSON.stringify({ backstory, samples, prompt }),
         })
