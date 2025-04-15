@@ -1,16 +1,17 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session
 from AiGhostWriter import get_gemini_flash_output, transform_to_human_like, model
 from flask_cors import CORS
 import os
 import logging
 import bleach
-from flask_wtf.csrf import generate_csrf
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'your_fallback_secret_key'
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "https://kurtastarita.github.io"}})
+csrf = CSRFProtect(app) # Initialize CSRF protection
 limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 
 logging.basicConfig(level=logging.ERROR)
@@ -21,6 +22,7 @@ allowed_attributes = {}
 @app.route('/csrf_token', methods=['GET'])
 def get_csrf_token():
     token = generate_csrf()
+    session['_csrf_token'] = token # Store the token in the session
     return jsonify({'csrf_token': token})
 
 @app.route('/')
@@ -35,14 +37,11 @@ def generate_content():
         backstory = data.get('backstory')
         samples = data.get('samples')
         prompt = data.get('prompt')
-        csrf_token_header = request.headers.get('X-CSRFToken')
 
         if not backstory or not samples or not prompt:
             return jsonify({'error': 'Missing required data (backstory, samples, or prompt)'}), 400
 
-        # Stateless CSRF validation: Generate a new token and compare
-        if not csrf_token_header or csrf_token_header != generate_csrf():
-            return jsonify({'error': 'CSRF token validation failed'}), 400
+        # CSRF protection is now handled automatically by Flask-WTF
 
         backstory = bleach.clean(backstory, tags=allowed_tags, attributes=allowed_attributes, strip=True)
         samples = bleach.clean(samples, tags=allowed_tags, attributes=allowed_attributes, strip=True)
