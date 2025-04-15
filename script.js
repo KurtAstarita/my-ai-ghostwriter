@@ -3,25 +3,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const backstoryInput = document.getElementById('backstory');
     const samplesInput = document.getElementById('samples');
     const promptInput = document.getElementById('prompt');
-    const generatedContentDiv = document.getElementById('generated-content');
-
-    function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-    }
+    const generatedContentDiv = document.getElementById('generatedContent');
+    let csrfToken; // Variable to store the CSRF token
 
     function generateContent() {
         const backstory = backstoryInput.value;
         const samples = samplesInput.value;
         const prompt = promptInput.value;
-        const csrfToken = getCookie('csrf_token'); // Get the CSRF token from the cookie
 
         fetch('https://my-ai-ghostwriter.onrender.com/generate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken, // Include the CSRF token in the header
+                'X-CSRFToken': csrfToken, // Use the stored CSRF token
             },
             body: JSON.stringify({ backstory, samples, prompt }),
         })
@@ -50,9 +44,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
             });
         }
-        return response.json(); // We might not need the JSON response itself
+        return response.json();
     })
-    .then(() => {
+    .then(data => {
+        csrfToken = data.csrf_token; // Store the CSRF token from the response
         generateButton.addEventListener('click', generateContent);
     })
     .catch(error => {
