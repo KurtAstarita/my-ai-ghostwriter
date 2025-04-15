@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session
 from AiGhostWriter import get_gemini_flash_output, transform_to_human_like, model
 from flask_cors import CORS
 import os
@@ -21,8 +21,12 @@ allowed_attributes = {}
 
 @app.route('/csrf_token', methods=['GET'])
 def get_csrf_token():
-    csrf_token = csrf.generate_csrf()
-    return jsonify({'csrf_token': csrf_token})
+    token = session.get('_csrf_token')
+    if not token:
+        # We might need to trigger token generation differently.
+        # For now, let's just return an error if it's not there.
+        return jsonify({'error': 'CSRF token not initialized'}), 500
+    return jsonify({'csrf_token': token})
 
 @app.route('/')
 def hello_world():
@@ -39,6 +43,9 @@ def generate_content():
 
         if not backstory or not samples or not prompt:
             return jsonify({'error': 'Missing required data (backstory, samples, or prompt)'}), 400
+
+        # CSRF token validation should happen automatically by Flask-WTF
+        # before this point for POST requests if configured correctly.
 
         backstory = bleach.clean(backstory, tags=allowed_tags, attributes=allowed_attributes, strip=True)
         samples = bleach.clean(samples, tags=allowed_tags, attributes=allowed_attributes, strip=True)
