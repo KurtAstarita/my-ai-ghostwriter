@@ -91,14 +91,14 @@ def transform_to_human_like(ai_text, writing_samples):
     phrases_file = os.path.join(script_dir, "human_phrases.txt")
 
     phrase_categories = {
-        "opening": ["Well,", "Alright,", "Listen up,", "So,", "Anyway,"],
-        "transition": ["Furthermore,", "However,", "In addition,", "On the other hand,", "Moreover,", "Nevertheless,", "Despite that,", "Although,", "Yet,", "Still,", "Meanwhile,", "By the way,", "Speaking of which,"],
-        "opinion": ["I think...", "I believe...", "I feel...", "In my opinion,", "From my perspective,", "As far as I can tell,"],
-        "casual": ["You know?", "Right?", "Um,", "Uh,", "Like,", "Basically,", "Essentially,", "So yeah,", "Anyway, yeah,"],
-        "emphasis": ["Honestly,", "Frankly,", "Seriously,", "Believe it or not,", "Guess what?", "You see,"],
-        "closing": ["That's about it,", "In conclusion,", "To summarize,", "Ultimately,", "At the end of the day,", "So there you have it,"],
-        "question": ["Right?", "Huh?"],
-        "explanation": ["What I mean is,", "In other words,", "To put it simply,"],
+        "opening": [],
+        "transition": [],
+        "opinion": [],
+        "casual": [],
+        "emphasis": [],
+        "closing": [],
+        "question": [],
+        "explanation": [],
     }
 
     loaded_phrases = {}
@@ -165,20 +165,28 @@ def transform_to_human_like(ai_text, writing_samples):
 
                     # Insert transition words
                     if random.random() < transition_probability and not processed_paragraph and len(sentence_doc) > 3:
-                        transition_phrase = random.choice(phrase_categories.get("transition", transition_words))
-                        sentence_text = transition_phrase + ", " + sentence_text.lstrip()
+                        transition_options = phrase_categories.get("transition") or transition_words
+                        if transition_options:
+                            transition_phrase = random.choice(transition_options)
+                            sentence_text = transition_phrase + ", " + sentence_text.lstrip()
 
                     # Insert human-like phrases based on context
                     if random.random() < insertion_probability and len(sentence_doc) > 2 and not last_phrase_inserted:
                         chosen_phrase = None
                         if i == 0 and random.random() < 0.5: # Beginning of the output
-                            chosen_phrase = random.choice(phrase_categories.get("opening", ["Well,"]))
+                            opening_phrases = phrase_categories.get("opening")
+                            if opening_phrases:
+                                chosen_phrase = random.choice(opening_phrases)
                         elif len(transformed_text) > 0 and random.random() < 0.3: # Between paragraphs
-                            chosen_phrase = random.choice(phrase_categories.get("transition", ["Furthermore,"]))
+                            transition_phrases = phrase_categories.get("transition")
+                            if transition_phrases:
+                                chosen_phrase = random.choice(transition_phrases)
                         elif random.random() < 0.4: # General casual insertion
                             possible_categories = ["casual", "opinion", "emphasis", "question", "explanation"]
                             chosen_category = random.choice(possible_categories)
-                            chosen_phrase = random.choice(phrase_categories.get(chosen_category, ["You know?"]))
+                            category_phrases = phrase_categories.get(chosen_category)
+                            if category_phrases:
+                                chosen_phrase = random.choice(category_phrases)
 
                         if chosen_phrase:
                             insert_point = 0
