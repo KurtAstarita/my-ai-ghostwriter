@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request, jsonify, make_response, session
 from AiGhostWriter import get_gemini_flash_output, transform_to_human_like, model
 from flask_cors import CORS
 import os
@@ -19,12 +19,17 @@ logger = logging.getLogger(__name__)
 allowed_tags = ['p', 'br', 'span']
 allowed_attributes = {}
 
+@app.route('/csrf_token', methods=['GET'])
+def get_csrf_token():
+    csrf_token = session.get('_csrf_token')
+    if not csrf_token:
+        csrf_token = csrf._generate_token() # Accessing the internal method (may change in future versions)
+        session['_csrf_token'] = csrf_token
+    return jsonify({'csrf_token': csrf_token})
+
 @app.route('/')
 def hello_world():
-    response = make_response('Hello, World!')
-    csrf_token = csrf.generate_csrf()
-    response.set_cookie('csrf_token', csrf_token, httponly=True, secure=True, samesite='Strict')
-    return response
+    return 'Hello, World!'
 
 @app.route('/generate', methods=['POST'])
 @limiter.limit("5 per minute")
