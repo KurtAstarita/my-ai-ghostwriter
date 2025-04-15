@@ -1,73 +1,73 @@
-Well,
-Anyway,
-Look,
-Listen,
-Actually,
-To be honest,
-Honestly,
-Frankly,
-Seriously,
-Believe it or not,
-Guess what?
-So,
-Right?
-You know?
-You see,
-I mean,
-Um,
-Uh,
-Like,
-Basically,
-Essentially,
-In fact,
-As a matter of fact,
-The thing is,
-The point is,
-The truth is,
-Furthermore,
-Moreover,
-In addition,
-On the other hand,
-However,
-Nevertheless,
-Despite that,
-Although,
-Yet,
-Still,
-Meanwhile,
-In the meantime,
-By the way,
-Speaking of which,
-Regarding that,
-As for,
-Then,
-Next,
-After that,
-Before that,
-I think...
-I believe...
-I feel...
-In my opinion,
-From my perspective,
-As far as I can tell,
-It seems...
-It appears...
-It looks like...
-I suppose...
-I guess...
-Maybe...
-Perhaps...
-Possibly...
-So yeah,
-Anyway, yeah,
-That's about it,
-In conclusion,
-To summarize,
-Ultimately,
-At the end of the day,
-I'm thinking...
-It's like...
-We're going to...
-They're saying...
-He's like...
-She's like...
+[OPENING] Well,
+[OPENING] Anyway,
+[OPENING] Look,
+[OPENING] Listen,
+[CASUAL] Actually,
+[CASUAL] To be honest,
+[EMPHASIS] Honestly,
+[EMPHASIS] Frankly,
+[EMPHASIS] Seriously,
+[EMPHASIS] Believe it or not,
+[EMPHASIS] Guess what?
+[CASUAL] So,
+[CASUAL] Right?
+[CASUAL] You know?
+[CASUAL] You see,
+[CASUAL] I mean,
+[CASUAL] Um,
+[CASUAL] Uh,
+[CASUAL] Like,
+[CASUAL] Basically,
+[CASUAL] Essentially,
+[TRANSITION] In fact,
+[TRANSITION] As a matter of fact,
+[EXPLANATION] The thing is,
+[EXPLANATION] The point is,
+[EXPLANATION] The truth is,
+[TRANSITION] Furthermore,
+[TRANSITION] Moreover,
+[TRANSITION] In addition,
+[TRANSITION] On the other hand,
+[TRANSITION] However,
+[TRANSITION] Nevertheless,
+[TRANSITION] Despite that,
+[TRANSITION] Although,
+[TRANSITION] Yet,
+[TRANSITION] Still,
+[TRANSITION] Meanwhile,
+[TRANSITION] In the meantime,
+[TRANSITION] By the way,
+[TRANSITION] Speaking of which,
+[TRANSITION] Regarding that,
+[TRANSITION] As for,
+[TRANSITION] Then,
+[TRANSITION] Next,
+[TRANSITION] After that,
+[TRANSITION] Before that,
+[OPINION] I think...
+[OPINION] I believe...
+[OPINION] I feel...
+[OPINION] In my opinion,
+[OPINION] From my perspective,
+[OPINION] As far as I can tell,
+[OPINION] It seems...
+[OPINION] It appears...
+[OPINION] It looks like...
+[OPINION] I suppose...
+[OPINION] I guess...
+[OPINION] Maybe...
+[OPINION] Perhaps...
+[OPINION] Possibly...
+[CASUAL] So yeah,
+[CASUAL] Anyway, yeah,
+[CLOSING] That's about it,
+[CLOSING] In conclusion,
+[CLOSING] To summarize,
+[CLOSING] Ultimately,
+[CLOSING] At the end of the day,
+[OPINION] I'm thinking...
+[CASUAL] It's like...
+[CASUAL] We're going to...
+[CASUAL] They're saying...
+[CASUAL] He's like...
+[CASUAL] She's like...
