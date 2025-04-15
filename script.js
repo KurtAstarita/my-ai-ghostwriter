@@ -30,7 +30,7 @@ function generateContent() {
         generateButton.classList.remove('generating');
         generateButton.innerText = 'Generate Badass Content';
         generatedContent.classList.remove('loading');
-        generatedContent.value = data.generated_content;
+        generatedContent.value = DOMPurify.sanitize(data.generated_content);
     })
     .catch((error) => {
         console.error('Error:', error);
