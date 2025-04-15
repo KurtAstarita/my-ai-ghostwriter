@@ -11,7 +11,7 @@ from flask_limiter.util import get_remote_address
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'your_fallback_secret_key'
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "https://kurtastarita.github.io"}})
-app.config['SESSION_COOKIE_DOMAIN'] = '.github.io' # Try setting the cookie domain
+app.config['SESSION_COOKIE_DOMAIN'] = 'my-ai-ghostwriter.onrender.com' # Set to your backend domain
 csrf = CSRFProtect(app) # Initialize CSRF protection
 limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 
