@@ -10,8 +10,8 @@
 [EMPHASIS] Believe it or not
 [EMPHASIS] Guess what?
 [CASUAL] So
-[CASUAL] Right?
-[CASUAL] You know?
+[CASUAL] Right
+[CASUAL] You know
 [CASUAL] You see
 [CASUAL] I mean
 [CASUAL] Um
@@ -44,20 +44,20 @@
 [TRANSITION] Next
 [TRANSITION] After that
 [TRANSITION] Before that
-[OPINION] I think...
-[OPINION] I believe...
-[OPINION] I feel...
+[OPINION] I think
+[OPINION] I believe
+[OPINION] I feel
 [OPINION] In my opinion
 [OPINION] From my perspective
 [OPINION] As far as I can tell
-[OPINION] It seems...
-[OPINION] It appears...
-[OPINION] It looks like...
-[OPINION] I suppose...
-[OPINION] I guess...
-[OPINION] Maybe...
-[OPINION] Perhaps...
-[OPINION] Possibly...
+[OPINION] It seems
+[OPINION] It appears
+[OPINION] It looks like
+[OPINION] I suppose
+[OPINION] I guess
+[OPINION] Maybe
+[OPINION] Perhaps
+[OPINION] Possibly
 [CASUAL] So yeah
 [CASUAL] Anyway, yeah
 [CLOSING] That's about it
@@ -65,9 +65,9 @@
 [CLOSING] To summarize
 [CLOSING] Ultimately
 [CLOSING] At the end of the day
-[OPINION] I'm thinking...
-[CASUAL] It's like...
-[CASUAL] We're going to...
-[CASUAL] They're saying...
-[CASUAL] He's like...
-[CASUAL] She's like...
+[OPINION] I'm thinking
+[CASUAL] It's like
+[CASUAL] We're going to
+[CASUAL] They're saying
+[CASUAL] He's like
+[CASUAL] She's like
