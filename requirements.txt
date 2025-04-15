@@ -6,3 +6,4 @@ nltk
 flask_cors
 bleach
 Flask-WTF
+Flask-Limiter
