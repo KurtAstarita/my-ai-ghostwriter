@@ -44,6 +44,11 @@ def generate_content():
             logger.warning("Missing required data")
             return jsonify({'error': 'Missing required data (backstory, samples, or prompt)'}), 400
 
+        referer = request.headers.get('Referer')
+        if referer and not referer.startswith("https://kurtastarita.github.io/"):
+            logger.warning(f"Suspicious Referer header: {referer}")
+            return jsonify({'error': 'Invalid Referer header'}), 403
+
         # try:
         #     csrf.validate_csrf(request.headers.get('X-CSRFToken')) # Comment out validation
         #     logger.info("CSRF validation successful")
