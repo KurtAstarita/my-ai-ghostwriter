@@ -4,6 +4,12 @@ const generatedContent = document.getElementById('generatedContent');
 
 generateButton.addEventListener('click', generateContent);
 
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
 function generateContent() {
     const backstory = document.getElementById('backstory').value;
     const samples = document.getElementById('samples').value;
@@ -23,7 +29,8 @@ function generateContent() {
     fetch('https://my-ai-ghostwriter.onrender.com/generate', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrf_token') // Added CSRF token header
         },
         body: JSON.stringify(data)
     })
