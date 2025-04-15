@@ -1,60 +1,61 @@
-const generateForm = document.getElementById('generateForm');
-const generateButton = generateForm.querySelector('button[type="button"]');
-const generatedContent = document.getElementById('generatedContent');
+document.addEventListener('DOMContentLoaded', function() {
+    const generateButton = document.getElementById('generate-button');
+    const backstoryInput = document.getElementById('backstory');
+    const samplesInput = document.getElementById('samples');
+    const promptInput = document.getElementById('prompt');
+    const generatedContentDiv = document.getElementById('generated-content');
 
-function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-}
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
 
-function generateContent() {
-    const backstory = document.getElementById('backstory').value;
-    const samples = document.getElementById('samples').value;
-    const prompt = document.getElementById('prompt').value;
+    function generateContent() {
+        const backstory = backstoryInput.value;
+        const samples = samplesInput.value;
+        const prompt = promptInput.value;
+        const csrfToken = getCookie('csrf_token'); // Get the CSRF token from the cookie
 
-    const data = {
-        backstory: backstory,
-        samples: samples,
-        prompt: prompt
-    };
+        fetch('https://my-ai-ghostwriter.onrender.com/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken, // Include the CSRF token in the header
+            },
+            body: JSON.stringify({ backstory, samples, prompt }),
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            generatedContentDiv.textContent = data.generated_content;
+        })
+        .catch(error => {
+            console.error('Error generating content:', error);
+            generatedContentDiv.textContent = 'Error generating content. Please try again.';
+        });
+    }
 
-    generateButton.classList.add('generating');
-    generateButton.innerText = 'Generating content...';
-    generatedContent.classList.add('loading');
-    generatedContent.value = 'Generating... Please wait.';
-
-    fetch('https://my-ai-ghostwriter.onrender.com/generate', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrf_token')
-        },
-        body: JSON.stringify(data)
+    // Fetch CSRF token on page load
+    fetch('https://my-ai-ghostwriter.onrender.com/csrf_token')
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
+            });
+        }
+        return response.json(); // We might not need the JSON response itself
     })
-    .then(response => response.json())
-    .then(data => {
-        generateButton.classList.remove('generating');
-        generateButton.innerText = 'Generate Badass Content';
-        generatedContent.classList.remove('loading');
-        generatedContent.value = DOMPurify.sanitize(data.generated_content);
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-        generateButton.classList.remove('generating');
-        generateButton.innerText = 'Generate Badass Content';
-        generatedContent.classList.remove('loading');
-        generatedContent.value = 'Error generating content.';
-    });
-}
-
-// Fetch CSRF token on page load and then attach the event listener
-fetch('https://my-ai-ghostwriter.onrender.com/csrf_token')
-    .then(response => response.json()) // We don't actually need the JSON response, the cookie will be set
     .then(() => {
         generateButton.addEventListener('click', generateContent);
     })
     .catch(error => {
         console.error('Error fetching CSRF token:', error);
-        // Optionally handle the error, e.g., disable the generate button
     });
+});
