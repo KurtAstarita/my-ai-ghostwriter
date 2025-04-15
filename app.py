@@ -4,14 +4,14 @@ from flask_cors import CORS
 import os
 import logging
 import bleach
-# from flask_wtf.csrf import CSRFProtect # Commenting out CSRF protection import
+from flask_wtf.csrf import CSRFProtect # Import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'your_fallback_secret_key'
 CORS(app)
-# csrf = CSRFProtect(app) # Commenting out CSRF protection initialization
+csrf = CSRFProtect(app)
 limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 
 logging.basicConfig(level=logging.ERROR)
