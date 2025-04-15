@@ -22,7 +22,12 @@ allowed_attributes = {}
 @app.route('/csrf_token', methods=['GET'])
 def get_csrf_token():
     csrf_token = session.get('_csrf_token')
-    return jsonify({'csrf_token': csrf_token})
+    if not csrf_token:
+        csrf_token = csrf.generate_csrf()
+        session['_csrf_token'] = csrf_token
+    response = make_response(jsonify({'csrf_token': csrf_token}))
+    response.set_cookie('csrf_token', csrf_token, httponly=True, secure=True, samesite='Strict')
+    return response
 
 @app.route('/')
 def hello_world():
