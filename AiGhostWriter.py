@@ -43,10 +43,12 @@ def transform_to_human_like(ai_text, writing_samples):
 
     transformed_text = []
     human_like_phrases = []
-    insertion_probability = 0.6  # Adjusted probability
+    insertion_probability = 0.5  # Slightly reduced
     split_probability = 0.2
     long_sentence_threshold = 20
-    synonym_replacement_probability = 0.15 # Probability of replacing a word with a synonym
+    synonym_replacement_probability = 0.15
+    transition_probability = 0.15
+    transition_words = ["Furthermore", "However", "In addition", "On the other hand", "Moreover", "Consequently", "Therefore", "Meanwhile", "Nevertheless", "Despite that", "Although", "Yet", "Still", "So", "Then"]
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     phrases_file = os.path.join(script_dir, "human_phrases.txt")
@@ -81,6 +83,7 @@ def transform_to_human_like(ai_text, writing_samples):
 
     lines = ai_text.splitlines()
     i = 0
+    last_phrase_inserted = False # Track if a phrase was inserted in the last sentence
     while i < len(lines):
         line = lines[i].strip()
         if not line:
@@ -91,6 +94,7 @@ def transform_to_human_like(ai_text, writing_samples):
         if line.startswith("##") or (line.startswith("**") and not re.match(r"^\*\s*\*\*", line)) or re.match(r"^\*\s*\*\*", line):
             transformed_text.append(line)
             i += 1
+            last_phrase_inserted = False # Reset flag for headings
         else:
             paragraph = ""
             while i < len(lines) and not lines[i].strip().startswith("##") and not lines[i].strip().startswith("**") and not re.match(r"^\*\s*\*\*", lines[i].strip()):
@@ -105,29 +109,46 @@ def transform_to_human_like(ai_text, writing_samples):
                 processed_paragraph = []
                 for sent in doc.sents:
                     sentence_text = "".join(token.text_with_ws for token in sent)
-                    sentence_doc = nlp(sentence_text) # Re-parse for token-level operations
+                    sentence_doc = nlp(sentence_text)
 
-                    # Insert human-like phrases at the beginning of sentences
-                    if random.random() < insertion_probability and human_like_phrases and len(sentence_doc) > 2: # Avoid adding to very short sentences
+                    # Insert transition words
+                    if random.random() < transition_probability and not processed_paragraph and len(sentence_doc) > 3:
+                        transition = random.choice(transition_words)
+                        sentence_text = transition + ", " + sentence_text.lstrip()
+
+                    # Insert human-like phrases
+                    if random.random() < insertion_probability and human_like_phrases and len(sentence_doc) > 2 and not last_phrase_inserted:
                         phrase_to_add = random.choice(human_like_phrases)
-                        sentence_text = phrase_to_add + ", " + sentence_text.lstrip() # Add a comma for better flow
+                        # Insert at the beginning or after a comma/semicolon with some probability
+                        if random.random() < 0.7 or not sentence_text.startswith(tuple(human_like_phrases)):
+                            insert_point = 0
+                            possible_points = [m.start() for m in re.finditer(r'[,;]', sentence_text)]
+                            if possible_points and random.random() < 0.3:
+                                insert_point = random.choice(possible_points) + 1 # Insert after the punctuation
+
+                            if insert_point > 0:
+                                sentence_text = sentence_text[:insert_point].strip() + ", " + phrase_to_add + sentence_text[insert_point:]
+                            else:
+                                sentence_text = phrase_to_add + ", " + sentence_text.lstrip()
+                            last_phrase_inserted = True
+                        else:
+                            last_phrase_inserted = False # Don't set if we didn't insert
 
                     # Split long sentences
                     if len(sentence_doc) > long_sentence_threshold and random.random() < split_probability:
                         split_point = -1
-                        for j in range(len(sentence_doc) // 2, len(sentence_doc) - 1): # Adjusted range
-                            if sentence_doc[j].text in [",", ";", "and", "but", "or", "because"]:
-                                split_point = j
-                                break
-                        if split_point != -1:
-                            first_part = "".join(token.text_with_ws for token in sentence_doc[:split_point+1]).strip()
-                            second_part = "".join(token.text_with_ws for token in sentence_doc[split_point+1:]).strip()
+                        split_candidates = [i for i, token in enumerate(sentence_doc) if token.text in [",", ";", "and", "but", "or", "because"]]
+                        if split_candidates and len(sentence_doc) > 5: # Ensure there's enough on both sides
+                            split_index = random.choice(split_candidates)
+                            first_part = "".join(token.text_with_ws for token in sentence_doc[:split_index+1]).strip()
+                            second_part = "".join(token.text_with_ws for token in sentence_doc[split_index+1:]).strip()
                             processed_paragraph.append(first_part)
                             processed_paragraph.append(second_part)
                         else:
                             processed_paragraph.append(sentence_text)
                     else:
                         processed_paragraph.append(sentence_text)
+                        last_phrase_inserted = False # Reset if not split
 
                 transformed_text.extend(processed_paragraph)
 
