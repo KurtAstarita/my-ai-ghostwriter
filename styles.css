@@ -81,3 +81,55 @@ h2 {
     height: auto; /* Adjust height based on content */
     min-height: 150px; /* Minimum height */
 }
+
+/* Existing styles from before */
+
+.generating {
+    background-color: #ccc !important;
+    color: #888 !important;
+    cursor: not-allowed !important;
+    position: relative; /* For positioning the spinner */
+    pointer-events: none; /* Prevent further clicks */
+}
+
+.generating::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin-top: -10px;
+    margin-left: -10px;
+    border: 3px solid #fff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading {
+    background-color: #eee !important;
+    color: #aaa !important;
+    cursor: wait !important;
+    position: relative; /* For positioning the spinner */
+}
+
+.loading::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 30px;
+    height: 30px;
+    margin-top: -15px;
+    margin-left: -15px;
+    border: 5px solid #ccc;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
