@@ -4,13 +4,14 @@ from flask_cors import CORS
 import os
 import logging
 import bleach
-from flask_wtf.csrf import CSRFProtect, generate_csrf, ValidationError
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'your_fallback_secret_key'
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "https://kurtastarita.github.io"}})
+app.config['SESSION_COOKIE_DOMAIN'] = '.github.io' # Try setting the cookie domain
 csrf = CSRFProtect(app) # Initialize CSRF protection
 limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 
@@ -44,15 +45,8 @@ def generate_content():
             logger.warning("Missing required data")
             return jsonify({'error': 'Missing required data (backstory, samples, or prompt)'}), 400
 
-        try:
-            csrf.validate_csrf(request.headers.get('X-CSRFToken'))
-            logger.info("CSRF validation successful")
-        except ValidationError as e:
-            logger.warning(f"CSRF validation failed: {e}")
-            return jsonify({'error': 'CSRF token validation failed'}), 400
-        except Exception as e:
-            logger.error(f"An unexpected error occurred during CSRF validation: {e}")
-            return jsonify({'error': 'An unexpected error occurred during CSRF validation.'}), 500
+        csrf.validate_csrf(request.headers.get('X-CSRFToken'))
+        logger.info("CSRF validation successful")
 
         backstory = bleach.clean(backstory, tags=allowed_tags, attributes=allowed_attributes, strip=True)
         samples = bleach.clean(samples, tags=allowed_tags, attributes=allowed_attributes, strip=True)
@@ -63,6 +57,9 @@ def generate_content():
 
         return jsonify({'generated_content': human_like_output})
 
+    except ValidationError as e:
+        logger.warning(f"CSRF validation failed: {e}")
+        return jsonify({'error': 'CSRF token validation failed'}), 400
     except Exception as e:
         logger.error(f"An error occurred during content generation: {e}")
         return jsonify({'error': 'An unexpected error occurred on the server.'}), 500
