@@ -1,7 +1,8 @@
-gunicorn
 flask
+gunicorn
 google-generativeai
 spacy
 nltk
 flask_cors
 bleach
+Flask-WTF
