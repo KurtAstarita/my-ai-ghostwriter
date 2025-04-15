@@ -4,15 +4,14 @@ from flask_cors import CORS
 import os
 import logging
 import bleach
-from flask_wtf.csrf import CSRFProtect, generate_csrf
+from flask_wtf.csrf import generate_csrf # Import generate_csrf, but we won't initialize CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'your_fallback_secret_key'
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "https://kurtastarita.github.io"}})
-app.config['WTF_CSRF_HEADERS'] = ['X-CSRFToken'] # Tell Flask-WTF to look for this header
-csrf = CSRFProtect(app)
+# We are NOT initializing CSRFProtect here
 limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 
 logging.basicConfig(level=logging.ERROR)
@@ -42,12 +41,14 @@ def generate_content():
         backstory = data.get('backstory')
         samples = data.get('samples')
         prompt = data.get('prompt')
+        csrf_token_header = request.headers.get('X-CSRFToken')
+        session_csrf_token = session.get('_csrf_token')
 
         if not backstory or not samples or not prompt:
             return jsonify({'error': 'Missing required data (backstory, samples, or prompt)'}), 400
 
-        # CSRF token validation should happen automatically by Flask-WTF
-        # before this point for POST requests if configured correctly.
+        if not csrf_token_header or not session_csrf_token or csrf_token_header != session_csrf_token:
+            return jsonify({'error': 'CSRF token validation failed'}), 400
 
         backstory = bleach.clean(backstory, tags=allowed_tags, attributes=allowed_attributes, strip=True)
         samples = bleach.clean(samples, tags=allowed_tags, attributes=allowed_attributes, strip=True)
