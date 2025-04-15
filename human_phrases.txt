@@ -1,55 +1,55 @@
-[OPENING] Well,
-[OPENING] Anyway,
-[OPENING] Look,
-[OPENING] Listen,
-[CASUAL] Actually,
-[CASUAL] To be honest,
-[EMPHASIS] Honestly,
-[EMPHASIS] Frankly,
-[EMPHASIS] Seriously,
-[EMPHASIS] Believe it or not,
+[OPENING] Well
+[OPENING] Anyway
+[OPENING] Look
+[OPENING] Listen
+[CASUAL] Actually
+[CASUAL] To be honest
+[EMPHASIS] Honestly
+[EMPHASIS] Frankly
+[EMPHASIS] Seriously
+[EMPHASIS] Believe it or not
 [EMPHASIS] Guess what?
-[CASUAL] So,
+[CASUAL] So
 [CASUAL] Right?
 [CASUAL] You know?
-[CASUAL] You see,
-[CASUAL] I mean,
-[CASUAL] Um,
-[CASUAL] Uh,
-[CASUAL] Like,
-[CASUAL] Basically,
-[CASUAL] Essentially,
-[TRANSITION] In fact,
-[TRANSITION] As a matter of fact,
-[EXPLANATION] The thing is,
-[EXPLANATION] The point is,
-[EXPLANATION] The truth is,
-[TRANSITION] Furthermore,
-[TRANSITION] Moreover,
-[TRANSITION] In addition,
-[TRANSITION] On the other hand,
-[TRANSITION] However,
-[TRANSITION] Nevertheless,
-[TRANSITION] Despite that,
-[TRANSITION] Although,
-[TRANSITION] Yet,
-[TRANSITION] Still,
-[TRANSITION] Meanwhile,
-[TRANSITION] In the meantime,
-[TRANSITION] By the way,
-[TRANSITION] Speaking of which,
-[TRANSITION] Regarding that,
-[TRANSITION] As for,
-[TRANSITION] Then,
-[TRANSITION] Next,
-[TRANSITION] After that,
-[TRANSITION] Before that,
+[CASUAL] You see
+[CASUAL] I mean
+[CASUAL] Um
+[CASUAL] Uh
+[CASUAL] Like
+[CASUAL] Basically
+[CASUAL] Essentially
+[TRANSITION] In fact
+[TRANSITION] As a matter of fact
+[EXPLANATION] The thing is
+[EXPLANATION] The point is
+[EXPLANATION] The truth is
+[TRANSITION] Furthermore
+[TRANSITION] Moreover
+[TRANSITION] In addition
+[TRANSITION] On the other hand
+[TRANSITION] However
+[TRANSITION] Nevertheless
+[TRANSITION] Despite that
+[TRANSITION] Although
+[TRANSITION] Yet
+[TRANSITION] Still
+[TRANSITION] Meanwhile
+[TRANSITION] In the meantime
+[TRANSITION] By the way
+[TRANSITION] Speaking of which
+[TRANSITION] Regarding that
+[TRANSITION] As for
+[TRANSITION] Then
+[TRANSITION] Next
+[TRANSITION] After that
+[TRANSITION] Before that
 [OPINION] I think...
 [OPINION] I believe...
 [OPINION] I feel...
-[OPINION] In my opinion,
-[OPINION] From my perspective,
-[OPINION] As far as I can tell,
+[OPINION] In my opinion
+[OPINION] From my perspective
+[OPINION] As far as I can tell
 [OPINION] It seems...
 [OPINION] It appears...
 [OPINION] It looks like...
@@ -58,13 +58,13 @@
 [OPINION] Maybe...
 [OPINION] Perhaps...
 [OPINION] Possibly...
-[CASUAL] So yeah,
-[CASUAL] Anyway, yeah,
-[CLOSING] That's about it,
-[CLOSING] In conclusion,
-[CLOSING] To summarize,
-[CLOSING] Ultimately,
-[CLOSING] At the end of the day,
+[CASUAL] So yeah
+[CASUAL] Anyway, yeah
+[CLOSING] That's about it
+[CLOSING] In conclusion
+[CLOSING] To summarize
+[CLOSING] Ultimately
+[CLOSING] At the end of the day
 [OPINION] I'm thinking...
 [CASUAL] It's like...
 [CASUAL] We're going to...
