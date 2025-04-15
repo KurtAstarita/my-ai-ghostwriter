@@ -4,3 +4,4 @@ google-generativeai
 spacy
 nltk
 flask_cors
+bleach
