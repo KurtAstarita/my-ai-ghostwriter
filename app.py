@@ -21,7 +21,8 @@ allowed_attributes = {}
 
 @app.route('/csrf_token', methods=['GET'])
 def get_csrf_token():
-    return jsonify({'success': True})
+    csrf_token = csrf.generate_csrf()
+    return jsonify({'csrf_token': csrf_token})
 
 @app.route('/')
 def hello_world():
