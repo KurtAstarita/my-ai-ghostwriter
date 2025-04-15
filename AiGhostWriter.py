@@ -194,10 +194,13 @@ def transform_to_human_like(ai_text, writing_samples):
                             if possible_points and random.random() < 0.3:
                                 insert_point = random.choice(possible_points) + 1 # Insert after the punctuation
 
+                            punctuation_chars = ['.', '?', '!']
+                            add_comma = not chosen_phrase.endswith(tuple(punctuation_chars))
+
                             if insert_point > 0:
-                                sentence_text = sentence_text[:insert_point].strip() + ", " + chosen_phrase + sentence_text[insert_point:]
+                                sentence_text = sentence_text[:insert_point].strip() + (", " if add_comma else " ") + chosen_phrase + sentence_text[insert_point:]
                             else:
-                                sentence_text = chosen_phrase + ", " + sentence_text.lstrip()
+                                sentence_text = chosen_phrase + (", " if add_comma else " ") + sentence_text.lstrip()
                             last_phrase_inserted = True
                         else:
                             last_phrase_inserted = False # Don't set if we didn't insert
