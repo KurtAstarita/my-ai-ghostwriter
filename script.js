@@ -1,3 +1,7 @@
+const generateForm = document.getElementById('generateForm');
+const generateButton = generateForm.querySelector('button[type="button"]');
+const generatedContent = document.getElementById('generatedContent');
+
 function generateContent() {
     const backstory = document.getElementById('backstory').value;
     const samples = document.getElementById('samples').value;
@@ -9,7 +13,12 @@ function generateContent() {
         prompt: prompt
     };
 
-    fetch('https://my-ai-ghostwriter.onrender.com/generate', { // Replace with your actual PythonAnywhere URL
+    generateButton.classList.add('generating');
+    generateButton.innerText = 'Generating content...';
+    generatedContent.classList.add('loading');
+    generatedContent.value = 'Generating... Please wait.'; // Optional: Add a message in the textarea
+
+    fetch('https://my-ai-ghostwriter.onrender.com/generate', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -18,10 +27,16 @@ function generateContent() {
     })
     .then(response => response.json())
     .then(data => {
-        document.getElementById('generatedContent').value = data.generated_content;
+        generateButton.classList.remove('generating');
+        generateButton.innerText = 'Generate Badass Content';
+        generatedContent.classList.remove('loading');
+        generatedContent.value = data.generated_content;
     })
     .catch((error) => {
         console.error('Error:', error);
-        document.getElementById('generatedContent').value = 'Error generating content.';
+        generateButton.classList.remove('generating');
+        generateButton.innerText = 'Generate Badass Content';
+        generatedContent.classList.remove('loading');
+        generatedContent.value = 'Error generating content.';
     });
 }
