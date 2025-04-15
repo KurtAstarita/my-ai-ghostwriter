@@ -5,11 +5,13 @@ import os
 import logging
 import bleach
 from flask_wtf.csrf import CSRFProtect # Import CSRFProtect
+# from flask_limiter import Limiter, get_remote_address # Commenting out rate limiter import
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'your_fallback_secret_key'
 CORS(app)
 csrf = CSRFProtect(app) # Initialize CSRF protection
+# limiter = Limiter(get_remote_address, app=app, storage_uri="memory://") # Commenting out rate limiter initialization
 
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
@@ -21,6 +23,7 @@ def hello_world():
     return 'Hello, World!'
 
 @app.route('/generate', methods=['POST'])
+# @limiter.limit("5 per minute") # Commenting out rate limiter decorator
 def generate_content():
     try:
         data = request.get_json()
