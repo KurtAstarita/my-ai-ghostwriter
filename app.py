@@ -4,7 +4,7 @@ from flask_cors import CORS
 import os
 import logging
 import bleach
-from flask_wtf.csrf import CSRFProtect, generate_csrf
+from flask_wtf.csrf import CSRFProtect, generate_csrf, ValidationError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
@@ -14,7 +14,7 @@ CORS(app, supports_credentials=True, resources={r"/*": {"origins": "https://kurt
 csrf = CSRFProtect(app) # Initialize CSRF protection
 limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 
-logging.basicConfig(level=logging.ERROR)
+logging.basicConfig(level=logging.INFO) # Set logging level to INFO
 logger = logging.getLogger(__name__)
 allowed_tags = ['p', 'br', 'span']
 allowed_attributes = {}
@@ -33,15 +33,26 @@ def hello_world():
 @limiter.limit("5 per minute")
 def generate_content():
     try:
+        logger.info("Processing /generate request")
+        logger.info(f"Request Headers: {request.headers}")
         data = request.get_json()
         backstory = data.get('backstory')
         samples = data.get('samples')
         prompt = data.get('prompt')
 
         if not backstory or not samples or not prompt:
+            logger.warning("Missing required data")
             return jsonify({'error': 'Missing required data (backstory, samples, or prompt)'}), 400
 
-        # CSRF protection is now handled automatically by Flask-WTF
+        try:
+            csrf.validate_csrf(request.headers.get('X-CSRFToken'))
+            logger.info("CSRF validation successful")
+        except ValidationError as e:
+            logger.warning(f"CSRF validation failed: {e}")
+            return jsonify({'error': 'CSRF token validation failed'}), 400
+        except Exception as e:
+            logger.error(f"An unexpected error occurred during CSRF validation: {e}")
+            return jsonify({'error': 'An unexpected error occurred during CSRF validation.'}), 500
 
         backstory = bleach.clean(backstory, tags=allowed_tags, attributes=allowed_attributes, strip=True)
         samples = bleach.clean(samples, tags=allowed_tags, attributes=allowed_attributes, strip=True)
