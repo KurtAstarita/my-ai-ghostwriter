@@ -4,9 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const samplesInput = document.getElementById('samples');
     const promptInput = document.getElementById('prompt');
     const generatedContentDiv = document.getElementById('generatedContent');
-    const buttonLoadingIndicator = document.getElementById('button-loading-indicator'); // For the button spinner
     const copyButton = document.getElementById('copy-button'); // Assuming you have a copy button
-    const copyLoadingIndicator = document.getElementById('copy-loading-indicator'); // For the copy spinner
     let csrfToken; // Variable to store the CSRF token
 
     function generateContent() {
@@ -15,15 +13,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const prompt = promptInput.value;
 
         // Show loading state for generate button
+        generateButton.classList.add('generating');
         generateButton.disabled = true;
-        if (buttonLoadingIndicator) {
-            buttonLoadingIndicator.style.display = 'inline-block'; // Or 'block' depending on your styling
-        }
         if (copyButton) {
             copyButton.style.display = 'none';
-        }
-        if (copyLoadingIndicator) {
-            copyLoadingIndicator.style.display = 'none';
         }
         generatedContentDiv.textContent = '';
 
@@ -45,10 +38,8 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             // Hide loading state and show content/copy button
+            generateButton.classList.remove('generating');
             generateButton.disabled = false;
-            if (buttonLoadingIndicator) {
-                buttonLoadingIndicator.style.display = 'none';
-            }
             generatedContentDiv.textContent = data.generated_content;
             if (copyButton && data.generated_content) {
                 copyButton.style.display = 'inline-block'; // Or 'block'
@@ -56,10 +47,8 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             // Hide loading state and show error
+            generateButton.classList.remove('generating');
             generateButton.disabled = false;
-            if (buttonLoadingIndicator) {
-                buttonLoadingIndicator.style.display = 'none';
-            }
             generatedContentDiv.textContent = 'Error generating content. Please try again.';
             console.error('Error generating content:', error);
         });
@@ -90,26 +79,20 @@ document.addEventListener('DOMContentLoaded', function() {
             if (textToCopy) {
                 // Show loading state for copy button
                 copyButton.disabled = true;
-                if (copyLoadingIndicator) {
-                    copyLoadingIndicator.style.display = 'inline-block'; // Or 'block'
-                }
+                generatedContentDiv.classList.add('loading');
 
                 navigator.clipboard.writeText(textToCopy)
                     .then(() => {
                         // Hide loading state and re-enable button
                         copyButton.disabled = false;
-                        if (copyLoadingIndicator) {
-                            copyLoadingIndicator.style.display = 'none';
-                        }
+                        generatedContentDiv.classList.remove('loading');
                         alert('Content copied to clipboard!');
                     })
                     .catch(err => {
                         console.error('Failed to copy text: ', err);
                         // Hide loading state and re-enable button
                         copyButton.disabled = false;
-                        if (copyLoadingIndicator) {
-                            copyLoadingIndicator.style.display = 'none';
-                        }
+                        generatedContentDiv.classList.remove('loading');
                         alert('Failed to copy content.');
                     });
             } else {
