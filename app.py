@@ -1,17 +1,16 @@
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify
 from AiGhostWriter import get_gemini_flash_output, transform_to_human_like, model
 from flask_cors import CORS
 import os
 import logging
 import bleach
-from flask_wtf.csrf import generate_csrf # Import generate_csrf, but we won't initialize CSRFProtect
+from flask_wtf.csrf import generate_csrf, validate_csrf # Import validate_csrf
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'your_fallback_secret_key'
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "https://kurtastarita.github.io"}})
-# We are NOT initializing CSRFProtect here
 limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 
 logging.basicConfig(level=logging.ERROR)
@@ -21,13 +20,8 @@ allowed_attributes = {}
 
 @app.route('/csrf_token', methods=['GET'])
 def get_csrf_token():
-    try:
-        token = generate_csrf()
-        session['_csrf_token'] = token
-        return jsonify({'csrf_token': token})
-    except Exception as e:
-        logger.error(f"Error generating and storing CSRF token: {e}")
-        return jsonify({'error': 'Failed to initialize CSRF token'}), 500
+    token = generate_csrf()
+    return jsonify({'csrf_token': token})
 
 @app.route('/')
 def hello_world():
@@ -42,12 +36,11 @@ def generate_content():
         samples = data.get('samples')
         prompt = data.get('prompt')
         csrf_token_header = request.headers.get('X-CSRFToken')
-        session_csrf_token = session.get('_csrf_token')
 
         if not backstory or not samples or not prompt:
             return jsonify({'error': 'Missing required data (backstory, samples, or prompt)'}), 400
 
-        if not csrf_token_header or not session_csrf_token or csrf_token_header != session_csrf_token:
+        if not csrf_token_header or not validate_csrf(csrf_token_header):
             return jsonify({'error': 'CSRF token validation failed'}), 400
 
         backstory = bleach.clean(backstory, tags=allowed_tags, attributes=allowed_attributes, strip=True)
