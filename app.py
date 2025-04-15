@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from AiGhostWriter import get_gemini_flash_output, transform_to_human_like, model
 from flask_cors import CORS
 import os
@@ -11,7 +11,7 @@ from flask_limiter.util import get_remote_address
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'your_fallback_secret_key'
 CORS(app)
-csrf = CSRFProtect(app)
+csrf = CSRFProtect(app) # Initialize CSRF protection
 limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 
 logging.basicConfig(level=logging.ERROR)
@@ -21,7 +21,10 @@ allowed_attributes = {}
 
 @app.route('/')
 def hello_world():
-    return 'Hello, World!'
+    response = make_response('Hello, World!')
+    csrf_token = csrf.generate_csrf()
+    response.set_cookie('csrf_token', csrf_token, httponly=True, secure=True, samesite='Strict')
+    return response
 
 @app.route('/generate', methods=['POST'])
 @limiter.limit("5 per minute")
