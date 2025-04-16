@@ -145,7 +145,7 @@ def transform_to_human_like(ai_text, writing_samples):
                     paragraph = lines[i]
                 i += 1
 
-        if paragraph:
+if paragraph:
             doc = nlp(paragraph)
             processed_paragraph = []
             for sent in doc.sents:
