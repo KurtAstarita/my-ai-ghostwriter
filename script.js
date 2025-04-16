@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Commenting out the CSRF token fetching logic since CORS is disabled on the backend
-  // fetch('https://my-ai-ghostwriter.onrender.com/csrf_token')
+    fetch('https://aighostwriter.kurtastarita.com/generate', {
   // .then(response => {
   //   if (!response.ok) {
   //     return response.text().then(text => {
