@@ -32,9 +32,11 @@ else:
     logger.error("GOOGLE_API_KEY environment variable not set!")
     # Potentially return an error response if the API key is crucial
 
+from flask import render_template
+
 @app.route('/')
 def index():
-    return render_template('index.html') # Ensure you have an index.html file with the form
+    return render_template('index.html')
 
 @app.route('/generate', methods=['POST'])
 def generate_content_route():
