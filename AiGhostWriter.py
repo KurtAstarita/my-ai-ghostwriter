@@ -8,7 +8,6 @@ genai.configure(api_key=GOOGLE_API_KEY)
 
 # For text-only input, use the gemini-2.0-flash model
 model = genai.GenerativeModel('gemini-2.0-flash')
-
 def get_gemini_flash_output(backstory, samples, prompt):
     """
     Interacts with the Gemini 2.0 Flash model to get the initial output,
