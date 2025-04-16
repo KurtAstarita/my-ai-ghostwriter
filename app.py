@@ -27,7 +27,7 @@ gemini_model = None # Initialize gemini_model here
 if GOOGLE_API_KEY:
     genai.configure(api_key=GOOGLE_API_KEY)
     # Initialize the Gemini model here
-    gemini_model = genai.GenerativeModel('gemini-2-pro-flash')
+    gemini_model = genai.GenerativeModel('gemini-2.0-flash')
 else:
     logger.error("GOOGLE_API_KEY environment variable not set!")
     # Potentially return an error response if the API key is crucial
