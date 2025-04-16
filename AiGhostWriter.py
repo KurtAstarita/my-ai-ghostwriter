@@ -31,10 +31,10 @@ Prompt:
 Write a response in a similar style, as if it were written by the user themselves."""
 
     try:
-        response = model.generate_content(final_prompt)
-        return response.text
-    except Exception as e:
-        return f"Error generating content: {e}"
+        response = model.generate_content(final_prompt)
+        return response.text
+    except Exception as e:
+        return f"Error generating content: {e}"
 
 import spacy
 import nltk
