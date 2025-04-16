@@ -1,1 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' cdnjs.cloudflare.com; style-src 'self' 'sha256-+OsIn6RhyCZCUkkvtHxFtP0kU3CGdGeLjDd9Fzqdl3o='; connect-src 'self' https://aighostwriter.kurtastarita.com/ https://myaighostwriter.kurtastarita.com;">
+    <title>AI Ghostwriter</title>
+</head>
+<body>
+    <h1>AI Ghostwriter</h1>
 
+<form method="POST" action="/generate">
+    {{ csrf_token() }}
+    <div>
+        <label for="backstory">Your Backstory:</label>
+        <textarea id="backstory" name="backstory"></textarea>
+    </div>
+    <div>
+        <label for="samples">Writing Samples:</label>
+        <textarea id="samples" name="samples"></textarea>
+    </div>
+    <div>
+        <label for="prompt">Your Prompt:</label>
+        <textarea id="prompt" name="prompt"></textarea>
+    </div>
+    <button type="submit" id="generateButton">Generate</button>
+</form>
+
+    <br><br>
+
+    <div>
+        <h2>Generated Content:</h2>
+        <textarea id="generatedContent" rows="15" cols="80" readonly></textarea>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.3/purify.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
