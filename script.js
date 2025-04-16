@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     generatedContentDiv.textContent = '';
 
-    fetch('https://aighostwriter.kurtastarita.com', {
+    fetch('https://aighostwriter.kurtastarita.com/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -74,7 +74,6 @@ document.addEventListener('DOMContentLoaded', function() {
           .catch(err => {
             console.error('Failed to copy text: ', err);
             // Hide loading state and re-enable button
-            copyButton.disabled = false;
             generatedContentDiv.classList.remove('loading');
             alert('Failed to copy content.');
           });
