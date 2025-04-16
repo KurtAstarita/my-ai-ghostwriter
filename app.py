@@ -63,23 +63,17 @@ def generate_content():
             logger.warning(f"Suspicious Referer header: {referer}")
             return jsonify({'error': 'Invalid Referer header'}), 403
 
-        # try:
-        #     csrf.validate_csrf(request.headers.get('X-CSRFToken')) # Comment out validation
-        #     logger.info("CSRF validation successful")
-        # except ValidationError as e:
-        #     logger.warning(f"CSRF validation failed: {e}")
-        #     return jsonify({'error': 'CSRF token validation failed'}), 400
-        # except Exception as e:
-        #     logger.error(f"An unexpected error occurred during CSRF validation: {e}")
-        #     return jsonify({'error': 'An unexpected error occurred during CSRF validation.'}), 500
-
         backstory = bleach.clean(backstory, tags=allowed_tags, attributes=allowed_attributes, strip=True)
         samples = bleach.clean(samples, tags=allowed_tags, attributes=allowed_attributes, strip=True)
         prompt = bleach.clean(prompt, tags=allowed_tags, attributes=allowed_attributes, strip=True)
 
-        # Pass the gemini_model to the get_gemini_flash_output function
+        # Get the raw AI output
         ai_output = get_gemini_flash_output(backstory, samples, prompt, gemini_model)
-        return jsonify({'generated_content': ai_output})
+
+        # Transform the AI output to be more human-like
+        human_like_output = transform_to_human_like(ai_output, samples)
+
+        return jsonify({'generated_content': human_like_output})
 
     except Exception as e:
         logger.error(f"An error occurred during content generation: {e}")
