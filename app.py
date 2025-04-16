@@ -22,8 +22,12 @@ allowed_attributes = {}
 
 # Use environment variable for Google API Key
 GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
+gemini_model = None # Initialize gemini_model here
+
 if GOOGLE_API_KEY:
     genai.configure(api_key=GOOGLE_API_KEY)
+    # Initialize the Gemini model here
+    gemini_model = genai.GenerativeModel('gemini-2-pro-flash')
 else:
     logger.error("GOOGLE_API_KEY environment variable not set!")
     # Potentially return an error response if the API key is crucial
@@ -60,20 +64,21 @@ def generate_content():
             return jsonify({'error': 'Invalid Referer header'}), 403
 
         # try:
-        #     csrf.validate_csrf(request.headers.get('X-CSRFToken')) # Comment out validation
-        #     logger.info("CSRF validation successful")
+        #     csrf.validate_csrf(request.headers.get('X-CSRFToken')) # Comment out validation
+        #     logger.info("CSRF validation successful")
         # except ValidationError as e:
-        #     logger.warning(f"CSRF validation failed: {e}")
-        #     return jsonify({'error': 'CSRF token validation failed'}), 400
+        #     logger.warning(f"CSRF validation failed: {e}")
+        #     return jsonify({'error': 'CSRF token validation failed'}), 400
         # except Exception as e:
-        #     logger.error(f"An unexpected error occurred during CSRF validation: {e}")
-        #     return jsonify({'error': 'An unexpected error occurred during CSRF validation.'}), 500
+        #     logger.error(f"An unexpected error occurred during CSRF validation: {e}")
+        #     return jsonify({'error': 'An unexpected error occurred during CSRF validation.'}), 500
 
         backstory = bleach.clean(backstory, tags=allowed_tags, attributes=allowed_attributes, strip=True)
         samples = bleach.clean(samples, tags=allowed_tags, attributes=allowed_attributes, strip=True)
         prompt = bleach.clean(prompt, tags=allowed_tags, attributes=allowed_attributes, strip=True)
 
-        ai_output = get_gemini_flash_output(backstory, samples, prompt)
+        # Pass the gemini_model to the get_gemini_flash_output function
+        ai_output = get_gemini_flash_output(backstory, samples, prompt, gemini_model)
         human_like_output = transform_to_human_like(ai_output, samples)
 
         return jsonify({'generated_content': human_like_output})
@@ -84,14 +89,3 @@ def generate_content():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-import google.generativeai as genai
-
-GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
-
-if GOOGLE_API_KEY:
-    genai.configure(api_key=GOOGLE_API_KEY)
-    model = genai.GenerativeModel('gemini-2.0-flash')
-else:
-    print("Warning: GOOGLE_API_KEY environment variable not set. Gemini functionality will not work.")
-    # You might want to handle this more robustly, e.g., by disabling the generate route
