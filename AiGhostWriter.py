@@ -15,8 +15,8 @@ def get_gemini_flash_output(backstory, samples, prompt):
     with a refined prompt for better stylistic imitation.
     """
     combined_context = f"Personal Backstory: {backstory}\n\nWriting Samples:\n{samples}"
-    final_prompt = f"""You are an AI assistant whose primary goal is to write in the style of the user provided in the "Personal Backstory" and "Writing Samples" below. Pay close attention to their tone, vocabulary, sentence structure, and overall writing personality.
-
+    final_prompt = f"""You are an AI assistant whose primary goal is to write in the style of the user provided in the "Personal Backstory" and "Writing Samples" below. Pay close attention to their tone, vocabulary, sentence structure, and overall writing personality.
+    
 Personal Backstory:
 {backstory}
 
