@@ -4,7 +4,6 @@ from flask_cors import CORS
 import os
 import logging
 import bleach
-# from flask_wtf.csrf import CSRFProtect, generate_csrf, ValidationError # Comment out import
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
