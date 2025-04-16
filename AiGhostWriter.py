@@ -126,6 +126,8 @@ def transform_to_human_like(ai_text, writing_samples):
     last_phrase_inserted = False # Track if a phrase was inserted in the last sentence
     while i < len(lines):
         line = lines[i].strip()
+        paragraph = ""  # Initialize paragraph here
+
         if not line:
             transformed_text.append("")
             i += 1
@@ -136,7 +138,6 @@ def transform_to_human_like(ai_text, writing_samples):
             i += 1
             last_phrase_inserted = False # Reset flag for headings
         else:
-            paragraph = ""
             while i < len(lines) and not lines[i].strip().startswith("##") and not lines[i].strip().startswith("**") and not re.match(r"^\*\s*\*\*", lines[i].strip()):
                 if paragraph:
                     paragraph += "\n" + lines[i]
@@ -145,11 +146,11 @@ def transform_to_human_like(ai_text, writing_samples):
                 i += 1
 
         if paragraph:
-                doc = nlp(paragraph)
-                processed_paragraph = []
-                for sent in doc.sents:
-                    sentence_text = "".join(token.text_with_ws for token in sent)
-                    sentence_doc = nlp(sentence_text)
+            doc = nlp(paragraph)
+            processed_paragraph = []
+            for sent in doc.sents:
+                sentence_text = "".join(token.text_with_ws for token in sent)
+                sentence_doc = nlp(sentence_text)
 
                     if random.random() < transition_probability and not processed_paragraph and len(sentence_doc) > 3:
                         transition_options = phrase_categories.get("transition") or transition_words
@@ -215,6 +216,11 @@ def transform_to_human_like(ai_text, writing_samples):
                         processed_paragraph.append(sentence_text)
                         last_phrase_inserted = False # Reset if not split
 
-                transformed_text.extend(processed_paragraph)
+            transformed_text.extend(processed_paragraph)
+
+        elif line: # Handle single non-heading lines
+            transformed_text.append(line)
+            i += 1
+            last_phrase_inserted = False
 
     return "\n\n".join(transformed_text)
