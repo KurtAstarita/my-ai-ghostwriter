@@ -126,8 +126,6 @@ def transform_to_human_like(ai_text, writing_samples):
     last_phrase_inserted = False # Track if a phrase was inserted in the last sentence
     while i < len(lines):
         line = lines[i].strip()
-        paragraph = ""  # Initialize paragraph here
-
         if not line:
             transformed_text.append("")
             i += 1
@@ -138,6 +136,7 @@ def transform_to_human_like(ai_text, writing_samples):
             i += 1
             last_phrase_inserted = False # Reset flag for headings
         else:
+            paragraph = ""
             while i < len(lines) and not lines[i].strip().startswith("##") and not lines[i].strip().startswith("**") and not re.match(r"^\*\s*\*\*", lines[i].strip()):
                 if paragraph:
                     paragraph += "\n" + lines[i]
@@ -146,81 +145,76 @@ def transform_to_human_like(ai_text, writing_samples):
                 i += 1
 
         if paragraph:
-            doc = nlp(paragraph)
-            processed_paragraph = []
-            for sent in doc.sents:
-                sentence_text = "".join(token.text_with_ws for token in sent)
-                sentence_doc = nlp(sentence_text)
+                doc = nlp(paragraph)
+                processed_paragraph = []
+                for sent in doc.sents:
+                    sentence_text = "".join(token.text_with_ws for token in sent)
+                    sentence_doc = nlp(sentence_text)
 
-                if random.random() < transition_probability and not processed_paragraph and len(sentence_doc) > 3:
-                    transition_options = phrase_categories.get("transition") or transition_words
-                    if transition_options:
-                        transition_phrase = random.choice(transition_options)
-                        sentence_text = transition_phrase + ", " + sentence_text.lstrip()
+                    if random.random() < transition_probability and not processed_paragraph and len(sentence_doc) > 3:
+                        transition_options = phrase_categories.get("transition") or transition_words
+                        if transition_options:
+                            transition_phrase = random.choice(transition_options)
+                            sentence_text = transition_phrase + ", " + sentence_text.lstrip()
 
-                if random.random() < insertion_probability and len(sentence_doc) > 2 and not last_phrase_inserted:
-                    chosen_phrase = None
-                    if i == 0 and random.random() < 0.5: # Beginning of the output
-                        opening_phrases = phrase_categories.get("opening")
-                        if opening_phrases:
-                            chosen_phrase = random.choice(opening_phrases)
-                    elif len(transformed_text) > 0 and random.random() < 0.3: # Between paragraphs
-                        transition_phrases = phrase_categories.get("transition")
-                        if transition_phrases:
-                            chosen_phrase = random.choice(transition_phrases)
-                    elif random.random() < 0.4: # General casual insertion
-                        possible_categories = ["casual", "opinion", "emphasis", "question", "explanation"]
-                        chosen_category = random.choice(possible_categories)
-                        category_phrases = phrase_categories.get(chosen_category)
-                        if category_phrases:
-                            chosen_phrase = random.choice(category_phrases)
+                    if random.random() < insertion_probability and len(sentence_doc) > 2 and not last_phrase_inserted:
+                        chosen_phrase = None
+                        if i == 0 and random.random() < 0.5: # Beginning of the output
+                            opening_phrases = phrase_categories.get("opening")
+                            if opening_phrases:
+                                chosen_phrase = random.choice(opening_phrases)
+                        elif len(transformed_text) > 0 and random.random() < 0.3: # Between paragraphs
+                            transition_phrases = phrase_categories.get("transition")
+                            if transition_phrases:
+                                chosen_phrase = random.choice(transition_phrases)
+                        elif random.random() < 0.4: # General casual insertion
+                            possible_categories = ["casual", "opinion", "emphasis", "question", "explanation"]
+                            chosen_category = random.choice(possible_categories)
+                            category_phrases = phrase_categories.get(chosen_category)
+                            if category_phrases:
+                                chosen_phrase = random.choice(category_phrases)
 
-                    if chosen_phrase:
-                        insert_point = 0
-                        possible_points = [m.start() for m in re.finditer(r'[,;]', sentence_text)]
-                        if possible_points and random.random() < 0.3:
-                            insert_point = random.choice(possible_points) + 1 # Insert after the punctuation
+                        if chosen_phrase:
+                            insert_point = 0
+                            possible_points = [m.start() for m in re.finditer(r'[,;]', sentence_text)]
+                            if possible_points and random.random() < 0.3:
+                                insert_point = random.choice(possible_points) + 1 # Insert after the punctuation
 
-                        punctuation_chars = ['.', '?', '!']
-                        ends_with_punctuation = chosen_phrase.endswith(tuple(punctuation_chars))
+                            punctuation_chars = ['.', '?', '!']
+                            ends_with_punctuation = chosen_phrase.endswith(tuple(punctuation_chars))
 
-                        if insert_point > 0:
-                            prefix = sentence_text[:insert_point].strip()
-                            suffix = sentence_text[insert_point:]
-                            if suffix.strip() and not ends_with_punctuation:
-                                sentence_text = f"{prefix}, {chosen_phrase}{suffix}"
+                            if insert_point > 0:
+                                prefix = sentence_text[:insert_point].strip()
+                                suffix = sentence_text[insert_point:]
+                                if suffix.strip() and not ends_with_punctuation:
+                                    sentence_text = f"{prefix}, {chosen_phrase}{suffix}"
+                                else:
+                                    sentence_text = f"{prefix} {chosen_phrase}{suffix}"
                             else:
-                                sentence_text = f"{prefix} {chosen_phrase}{suffix}"
+                                suffix = sentence_text.lstrip()
+                                if suffix and not ends_with_punctuation:
+                                    sentence_text = f"{chosen_phrase}, {suffix}"
+                                else:
+                                    sentence_text = f"{chosen_phrase} {suffix}"
+                                    last_phrase_inserted = True
                         else:
-                            suffix = sentence_text.lstrip()
-                            if suffix and not ends_with_punctuation:
-                                sentence_text = f"{chosen_phrase}, {suffix}"
-                            else:
-                                sentence_text = f"{chosen_phrase} {suffix}"
-                            last_phrase_inserted = True
-                    else:
-                        last_phrase_inserted = False # Don't set if we didn't insert
+                            last_phrase_inserted = False # Don't set if we didn't insert
 
-                if len(sentence_doc) > long_sentence_threshold and random.random() < split_probability:
-                    split_point = -1
-                    split_candidates = [i for i, token in enumerate(sentence_doc) if token.text in [",", ";", "and", "but", "or", "because"]]
-                    if split_candidates and len(sentence_doc) > 5: # Ensure there's enough on both sides
-                        split_index = random.choice(split_candidates)
-                        first_part = "".join(token.text_with_ws for token in sentence_doc[:split_index+1]).strip()
-                        second_part = "".join(token.text_with_ws for token in sentence_doc[split_index+1:]).strip()
-                        processed_paragraph.append(first_part)
-                        processed_paragraph.append(second_part)
+                    if len(sentence_doc) > long_sentence_threshold and random.random() < split_probability:
+                        split_point = -1
+                        split_candidates = [i for i, token in enumerate(sentence_doc) if token.text in [",", ";", "and", "but", "or", "because"]]
+                        if split_candidates and len(sentence_doc) > 5: # Ensure there's enough on both sides
+                            split_index = random.choice(split_candidates)
+                            first_part = "".join(token.text_with_ws for token in sentence_doc[:split_index+1]).strip()
+                            second_part = "".join(token.text_with_ws for token in sentence_doc[split_index+1:]).strip()
+                            processed_paragraph.append(first_part)
+                            processed_paragraph.append(second_part)
+                        else:
+                            processed_paragraph.append(sentence_text)
                     else:
                         processed_paragraph.append(sentence_text)
-                else:
-                    processed_paragraph.append(sentence_text)
-                    last_phrase_inserted = False # Reset if not split
+                        last_phrase_inserted = False # Reset if not split
 
-            transformed_text.extend(processed_paragraph)
-
-        elif line: # Handle single non-heading lines
-            transformed_text.append(line)
-            i += 1
-            last_phrase_inserted = False
+                transformed_text.extend(processed_paragraph)
 
     return "\n\n".join(transformed_text)
