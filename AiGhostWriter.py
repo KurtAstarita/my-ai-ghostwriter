@@ -1,11 +1,3 @@
-import google.generativeai as genai
-
-GOOGLE_API_KEY = "GOOGLE_API_KEY"
-
-genai.configure(api_key=GOOGLE_API_KEY)
-
-model = genai.GenerativeModel('gemini-2.0-flash')
-
 def get_gemini_flash_output(backstory, samples, prompt):
     """
     Interacts with the Gemini 2.0 Flash model to get the initial output,
