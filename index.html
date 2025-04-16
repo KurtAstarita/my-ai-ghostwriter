@@ -10,22 +10,24 @@
 <body>
     <h1>AI Ghostwriter</h1>
 
-<form method="POST" action="/generate">
-    {{ csrf_token() }}
-    <div>
-        <label for="backstory">Your Backstory:</label>
-        <textarea id="backstory" name="backstory"></textarea>
-    </div>
-    <div>
-        <label for="samples">Writing Samples:</label>
-        <textarea id="samples" name="samples"></textarea>
-    </div>
-    <div>
-        <label for="prompt">Your Prompt:</label>
-        <textarea id="prompt" name="prompt"></textarea>
-    </div>
-    <button type="submit" id="generateButton">Generate</button>
-</form>
+    <form id="generateForm">
+        <div>
+            <label for="backstory">Personal Backstory:</label><br>
+            <textarea id="backstory" name="backstory" rows="5" cols="80"></textarea>
+        </div>
+        <br>
+        <div>
+            <label for="samples">Writing Samples:</label><br>
+            <textarea id="samples" name="samples" rows="10" cols="80"></textarea>
+        </div>
+        <br>
+        <div>
+            <label for="prompt">Prompt:</label><br>
+            <textarea id="prompt" name="prompt" rows="3" cols="80"></textarea>
+        </div>
+        <br>
+       <button type="button" id="generate-button">Generate Badass Content</button>
+    </form>
 
     <br><br>
 
