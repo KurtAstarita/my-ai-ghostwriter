@@ -1,12 +1,9 @@
 import google.generativeai as genai
 
-# Replace with your actual API key
 GOOGLE_API_KEY = "AIzaSyA__63BnzDRK0vQqcuJkN5MHpgIlQ6WF8A"
 
-# Configure the API key
 genai.configure(api_key=GOOGLE_API_KEY)
 
-# For text-only input, use the gemini-2.0-flash model
 model = genai.GenerativeModel('gemini-2.0-flash')
 
 def get_gemini_flash_output(backstory, samples, prompt):
@@ -125,7 +122,6 @@ def transform_to_human_like(ai_text, writing_samples):
             if category in phrase_categories:
                 phrase_categories[category].extend(phrases)
             elif category == "general":
-                # Add general phrases to a few common categories to make them more likely to be used
                 for cat in ["casual", "opinion", "transition"]:
                     if cat in phrase_categories:
                         phrase_categories[cat].extend(phrases)
@@ -163,14 +159,12 @@ def transform_to_human_like(ai_text, writing_samples):
                     sentence_text = "".join(token.text_with_ws for token in sent)
                     sentence_doc = nlp(sentence_text)
 
-                    # Insert transition words
                     if random.random() < transition_probability and not processed_paragraph and len(sentence_doc) > 3:
                         transition_options = phrase_categories.get("transition") or transition_words
                         if transition_options:
                             transition_phrase = random.choice(transition_options)
                             sentence_text = transition_phrase + ", " + sentence_text.lstrip()
 
-                    # Insert human-like phrases based on context
                     if random.random() < insertion_probability and len(sentence_doc) > 2 and not last_phrase_inserted:
                         chosen_phrase = None
                         if i == 0 and random.random() < 0.5: # Beginning of the output
@@ -214,7 +208,6 @@ def transform_to_human_like(ai_text, writing_samples):
                         else:
                             last_phrase_inserted = False # Don't set if we didn't insert
 
-                    # Split long sentences
                     if len(sentence_doc) > long_sentence_threshold and random.random() < split_probability:
                         split_point = -1
                         split_candidates = [i for i, token in enumerate(sentence_doc) if token.text in [",", ";", "and", "but", "or", "because"]]
