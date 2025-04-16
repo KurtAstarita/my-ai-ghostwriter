@@ -172,9 +172,9 @@ def transform_to_human_like(ai_text, writing_samples):
                             if opening_phrases:
                                 chosen_phrase = random.choice(opening_phrases)
                         elif len(transformed_text) > 0 and random.random() < 0.3: # Between paragraphs
-                            transition_phrases = phrase_categories.get("transition")
-                            if transition_phrases:
-                                chosen_phrase = random.choice(transition_phrases)
+                            transition_phrases = phrase_categories.get("transition")
+                            if transition_phrases:
+                                chosen_phrase = random.choice(transition_phrases)
                         elif random.random() < 0.4: # General casual insertion
                             possible_categories = ["casual", "opinion", "emphasis", "question", "explanation"]
                             chosen_category = random.choice(possible_categories)
