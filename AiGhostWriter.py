@@ -171,7 +171,7 @@ def transform_to_human_like(ai_text, writing_samples):
                             opening_phrases = phrase_categories.get("opening")
                             if opening_phrases:
                                 chosen_phrase = random.choice(opening_phrases)
-                        elif len(transformed_text) > 0 and random.random() < 0.3: # Between paragraphs
+                        elif len(transformed_text) > 0 and random.random() < 0.3: # Between paragraphs
                             transition_phrases = phrase_categories.get("transition")
                             if transition_phrases:
                                 chosen_phrase = random.choice(transition_phrases)
