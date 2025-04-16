@@ -47,66 +47,66 @@ nltk.download('wordnet', quiet=True)
 nltk.download('averaged_perceptron_tagger', quiet=True)
 
 try:
-    nlp = spacy.load("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
 except OSError:
-    print("Downloading en_core_web_sm model for spaCy...")
-    spacy.cli.download("en_core_web_sm")
-    nlp = spacy.load("en_core_web_sm")
+    print("Downloading en_core_web_sm model for spaCy...")
+    spacy.cli.download("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
 
 def analyze_sentence_length(writing_samples):
-    """Analyzes the average sentence length from writing samples."""
-    sample_docs = [nlp(sample) for sample in writing_samples.split('\n') if sample.strip()]
-    total_sentences = 0
-    total_tokens = 0
-    for doc in sample_docs:
-        for sent in doc.sents:
-            total_sentences += 1
-            total_tokens += len(sent)
-    if total_sentences > 0:
-        return total_tokens / total_sentences
-    return 0
+    """Analyzes the average sentence length from writing samples."""
+    sample_docs = [nlp(sample) for sample in writing_samples.split('\n') if sample.strip()]
+    total_sentences = 0
+    total_tokens = 0
+    for doc in sample_docs:
+        for sent in doc.sents:
+            total_sentences += 1
+            total_tokens += len(sent)
+    if total_sentences > 0:
+        return total_tokens / total_sentences
+    return 0
 
 def get_synonyms(word, pos=None):
-    synonyms = set()
-    for syn in wordnet.synsets(word, pos=pos):
-        for lemma in syn.lemmas():
-            synonyms.add(lemma.name().replace("_", " "))
-    if word in synonyms:
-        synonyms.remove(word)
-    return list(synonyms)
+    synonyms = set()
+    for syn in wordnet.synsets(word, pos=pos):
+        for lemma in syn.lemmas():
+            synonyms.add(lemma.name().replace("_", " "))
+    if word in synonyms:
+        synonyms.remove(word)
+    return list(synonyms)
 
 def transform_to_human_like(ai_text, writing_samples):
-    avg_sentence_length = analyze_sentence_length(writing_samples)
-    print(f"Average sentence length in samples: {avg_sentence_length:.2f} words")
+    avg_sentence_length = analyze_sentence_length(writing_samples)
+    print(f"Average sentence length in samples: {avg_sentence_length:.2f} words")
 
-    transformed_text = []
-    insertion_probability = 0.5  # Slightly reduced
-    split_probability = 0.2
-    long_sentence_threshold = 20
-    synonym_replacement_probability = 0.15
-    transition_probability = 0.15
-    transition_words = ["Furthermore", "However", "In addition", "On the other hand", "Moreover", "Consequently", "Therefore", "Meanwhile", "Nevertheless", "Despite that", "Although", "Yet", "Still", "So", "Then"]
+    transformed_text = []
+    insertion_probability = 0.5  # Slightly reduced
+    split_probability = 0.2
+    long_sentence_threshold = 20
+    synonym_replacement_probability = 0.15
+    transition_probability = 0.15
+    transition_words = ["Furthermore", "However", "In addition", "On the other hand", "Moreover", "Consequently", "Therefore", "Meanwhile", "Nevertheless", "Despite that", "Although", "Yet", "Still", "So", "Then"]
 
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    phrases_file = os.path.join(script_dir, "human_phrases.txt")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    phrases_file = os.path.join(script_dir, "human_phrases.txt")
 
-    phrase_categories = {
-        "opening": [],
-        "transition": [],
-        "opinion": [],
-        "casual": [],
-        "emphasis": [],
-        "closing": [],
-        "question": [],
-        "explanation": [],
-    }
+    phrase_categories = {
+        "opening": [],
+        "transition": [],
+        "opinion": [],
+        "casual": [],
+        "emphasis": [],
+        "closing": [],
+        "question": [],
+        "explanation": [],
+    }
 
-    loaded_phrases = {}
-    try:
-        with open(phrases_file, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line and "[" in line and "]" in line:
+    loaded_phrases = {}
+    try:
+        with open(phrases_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and "[" in line and "]" in line:
                     match = re.match(r"\[(.*?)\]\s*(.*)", line)
                     if match:
                         category = match.group(1).lower()
