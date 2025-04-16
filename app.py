@@ -1,5 +1,5 @@
 import google.generativeai as genai
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify, session, render_template  # Import render_template
 from AiGhostWriter import get_gemini_flash_output, transform_to_human_like
 from flask_cors import CORS
 import os
@@ -39,8 +39,8 @@ def get_csrf_token():
     return jsonify({'csrf_token': 'DISABLED'}) # Return a placeholder
 
 @app.route('/')
-def hello_world():
-    return 'Hello, World!'
+def index():  # Changed function name to 'index' to be more descriptive
+    return render_template('index.html')  # Render the index.html template
 
 @app.route('/generate', methods=['POST'])
 @limiter.limit("5 per minute")
@@ -71,8 +71,8 @@ def generate_content():
         ai_output = get_gemini_flash_output(backstory, samples, prompt, gemini_model)
 
         # Transform the AI output to be more human-like
-         human_like_output = transform_to_human_like(ai_output, samples)
- 
+        human_like_output = transform_to_human_like(ai_output, samples)
+
         return jsonify({'generated_content': human_like_output})
 
     except Exception as e:
