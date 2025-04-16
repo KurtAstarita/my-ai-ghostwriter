@@ -1,3 +1,4 @@
+import google.generativeai as genai
 from flask import Flask, request, jsonify, session
 from AiGhostWriter import get_gemini_flash_output, transform_to_human_like
 from flask_cors import CORS
