@@ -11,7 +11,6 @@ from flask_limiter.util import get_remote_address
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'your_fallback_secret_key'
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "https://myaighostwriter.kurtastarita.com"}})
-# csrf = CSRFProtect(app) # Comment out initialization
 limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 
 logging.basicConfig(level=logging.INFO) # Set logging level to INFO
