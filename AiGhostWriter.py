@@ -1,4 +1,4 @@
-def get_gemini_flash_output(backstory, samples, prompt):
+def get_gemini_flash_output(backstory, samples, prompt, model):
     """
     Interacts with the Gemini 2.0 Flash model to get the initial output,
     with a refined prompt for better stylistic imitation.
