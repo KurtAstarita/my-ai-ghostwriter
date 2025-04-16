@@ -80,7 +80,7 @@ def transform_to_human_like(ai_text, writing_samples):
     print(f"Average sentence length in samples: {avg_sentence_length:.2f} words")
 
     transformed_text = []
-    insertion_probability = 0.5  # Slightly reduced
+    insertion_probability = 0.5
     split_probability = 0.2
     long_sentence_threshold = 20
     synonym_replacement_probability = 0.15
