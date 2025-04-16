@@ -1,10 +1,9 @@
 import google.generativeai as genai
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify, session, render_template
 from AiGhostWriter import get_gemini_flash_output, transform_to_human_like
 from flask_cors import CORS
 import os
 import logging
-import bleach
 # from flask_wtf.csrf import CSRFProtect, generate_csrf, ValidationError # Comment out import
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -32,19 +31,17 @@ else:
     logger.error("GOOGLE_API_KEY environment variable not set!")
     # Potentially return an error response if the API key is crucial
 
-@app.route('/csrf_token', methods=['GET'])
-def get_csrf_token():
-    # token = generate_csrf() # Comment out token generation
-    # session['_csrf_token'] = token # Comment out session storage
-    return jsonify({'csrf_token': 'DISABLED'}) # Return a placeholder
-
 @app.route('/')
-def hello_world():
-    return 'Hello, World!'
+def index():
+    return render_template('index.html')
 
 @app.route('/generate', methods=['POST'])
-@limiter.limit("5 per minute")
-def generate_content():
+def generate_content_route():
+    data = request.get_json()
+    backstory = data.get('backstory')
+    samples = data.get('samples')
+    prompt = data.get('prompt')
+    model_name = data.get('model', 'gemini-pro')
     try:
         logger.info("Processing /generate request")
         logger.info(f"Request Headers: {request.headers}")
@@ -62,10 +59,6 @@ def generate_content():
         if referer and not any(referer.startswith(origin) for origin in allowed_origins):
             logger.warning(f"Suspicious Referer header: {referer}")
             return jsonify({'error': 'Invalid Referer header'}), 403
-
-        backstory = bleach.clean(backstory, tags=allowed_tags, attributes=allowed_attributes, strip=True)
-        samples = bleach.clean(samples, tags=allowed_tags, attributes=allowed_attributes, strip=True)
-        prompt = bleach.clean(prompt, tags=allowed_tags, attributes=allowed_attributes, strip=True)
 
         # Get the raw AI output
         ai_output = get_gemini_flash_output(backstory, samples, prompt, gemini_model)
