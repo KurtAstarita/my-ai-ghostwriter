@@ -71,8 +71,8 @@ def generate_content():
         ai_output = get_gemini_flash_output(backstory, samples, prompt, gemini_model)
 
         # Transform the AI output to be more human-like
-        human_like_output = transform_to_human_like(ai_output, samples)
-
+         human_like_output = transform_to_human_like(ai_output, samples)
+ 
         return jsonify({'generated_content': human_like_output})
 
     except Exception as e:
