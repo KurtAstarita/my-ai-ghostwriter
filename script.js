@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
   //   console.error('Error fetching CSRF token:', error);
   // });
 
-  generateButton.addEventListener('click', generateContent); // Ensure the event listener is still attached
+  generateButton.addEventListener('click', generateContent);
 
   // Add event listener for copy button (if it exists)
   if (copyButton) {
