@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     generatedContentDiv.textContent = '';
 
-    fetch('https://my-ai-ghostwriter.onrender.com/generate', {
+    fetch('https://aighostwriter.kurtastarita.com', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
