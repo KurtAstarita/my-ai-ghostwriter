@@ -26,10 +26,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 csrfToken = data.csrf_token;
                 console.log('CSRF Token fetched:', csrfToken);
                 // The token is also set as a cookie
+                // Only attach the submit listener after the token is fetched
+                generateForm.addEventListener('submit', generateContent);
             })
             .catch(error => {
                 console.error('Error fetching CSRF token:', error);
                 alert('Failed to fetch CSRF token. The application might not work correctly.');
+                // Optionally, disable the generate button here
+                if (generateButton) {
+                    generateButton.disabled = true;
+                }
             });
     }
 
@@ -86,6 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    generateForm.addEventListener('submit', generateContent); // Listen to form submit
+    // Call fetchCsrfToken when the page loads, and the submit listener will be attached after it completes
     fetchCsrfToken();
 });
