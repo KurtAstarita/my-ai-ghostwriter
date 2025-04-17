@@ -64,7 +64,10 @@ def hello_world():
 @app.route('/generate', methods=['POST'])
 @limiter.limit("5 per minute")
 def generate_content():
-    if not verify_stateless_csrf_token(request.headers.get(CSRF_HEADER_NAME)):
+    logger.info(f"Session ID in /generate before verification: {session.get('session_id')}")
+    csrf_token_from_header = request.headers.get(CSRF_HEADER_NAME)
+    logger.info(f"CSRF Token from header: {csrf_token_from_header}")
+    if not verify_stateless_csrf_token(csrf_token_from_header):
         logger.warning("CSRF token verification failed for /generate")
         return jsonify({'error': 'Invalid CSRF token'}), 403
 
