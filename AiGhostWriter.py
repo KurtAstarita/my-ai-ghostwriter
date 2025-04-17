@@ -5,7 +5,7 @@ def get_gemini_flash_output(backstory, samples, prompt, model):
     """
     combined_context = f"Personal Backstory: {backstory}\n\nWriting Samples:\n{samples}"
     final_prompt = f"""You are an AI assistant whose primary goal is to write in the style of the user provided in the "Personal Backstory" and "Writing Samples" below. Pay close attention to their tone, vocabulary, sentence structure, and overall writing personality.
-
+    
 Personal Backstory:
 {backstory}
 
@@ -35,22 +35,15 @@ import re
 nltk.download('wordnet', quiet=True)
 nltk.download('averaged_perceptron_tagger', quiet=True)
 
-_nlp = None  # Initialize nlp as None
-
-def get_nlp():
-    global _nlp
-    if _nlp is None:
-        try:
-            _nlp = spacy.load("en_core_web_sm")
-        except OSError:
-            print("Downloading en_core_web_sm model for spaCy...")
-            spacy.cli.download("en_core_web_sm")
-            _nlp = spacy.load("en_core_web_sm")
-    return _nlp
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    print("Downloading en_core_web_sm model for spaCy...")
+    spacy.cli.download("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
 
 def analyze_sentence_length(writing_samples):
     """Analyzes the average sentence length from writing samples."""
-    nlp = get_nlp()
     sample_docs = [nlp(sample) for sample in writing_samples.split('\n') if sample.strip()]
     total_sentences = 0
     total_tokens = 0
@@ -72,7 +65,6 @@ def get_synonyms(word, pos=None):
     return list(synonyms)
 
 def transform_to_human_like(ai_text, writing_samples):
-    nlp = get_nlp()
     avg_sentence_length = analyze_sentence_length(writing_samples)
     print(f"Average sentence length in samples: {avg_sentence_length:.2f} words")
 
@@ -180,7 +172,6 @@ def insert_phrase(sentence_text, phrase):
         return f"{phrase}, {sentence_text.lstrip()}"
 
 def split_sentence(sentence_doc):
-    nlp = get_nlp()
     split_candidates = [i for i, token in enumerate(sentence_doc) if token.text in [",", ";", "and", "but", "or", "because"]]
     if split_candidates and len(sentence_doc) > 5:
         split_index = random.choice(split_candidates)
@@ -191,4 +182,4 @@ def split_sentence(sentence_doc):
         return "".join(token.text_with_ws for token in sentence_doc).strip(), ""
 
 transition_words = ["Furthermore", "However", "In addition", "On the other hand", "Moreover", "Consequently", "Therefore", "Meanwhile", "Nevertheless", "Despite that", "Although", "Yet", "Still", "So", "Then"]
-# nlp = spacy.load("en_core_web_sm") # Removed this direct initialization
+nlp = spacy.load("en_core_web_sm")
