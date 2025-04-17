@@ -64,6 +64,7 @@ def hello_world():
 @app.route('/generate', methods=['POST'])
 @limiter.limit("5 per minute")
 def generate_content():
+    logger.info(f"Cookies in /generate: {request.cookies}")
     logger.info(f"Session ID in /generate before verification: {session.get('session_id')}")
     csrf_token_from_header = request.headers.get(CSRF_HEADER_NAME)
     logger.info(f"CSRF Token from header: {csrf_token_from_header}")
