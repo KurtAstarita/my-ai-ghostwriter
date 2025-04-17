@@ -68,31 +68,66 @@ def transform_to_human_like(ai_text, writing_samples):
     avg_sentence_length = analyze_sentence_length(writing_samples)
     print(f"Average sentence length in samples: {avg_sentence_length:.2f} words")
 
-    transformed_text = []
-    insertion_probability = 0.5
-    split_probability = 0.2
-    long_sentence_threshold = 20
-    synonym_replacement_probability = 0.15
-    transition_probability = 0.15
-    transition_words = ["Furthermore", "However", "In addition", "On the other hand", "Moreover", "Consequently", "Therefore", "Meanwhile", "Nevertheless", "Despite that", "Although", "Yet", "Still", "So", "Then"]
+    transformed_blocks = []
+    insertion_probability = 0.3  # Reduced probability
+    split_probability = 0.15 # Reduced probability
+    long_sentence_threshold = 25 # Slightly higher threshold
+    synonym_replacement_probability = 0.1
+    transition_probability = 0.2
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     phrases_file = os.path.join(script_dir, "human_phrases.txt")
+    phrase_categories = load_human_phrases(phrases_file) # Using a helper function
 
+    blocks = re.split(r'(?m)^##|^(\*\*\s.*?:\s\*\*)', ai_text) # Split by markdown headings and bolded points
+    blocks = [block.strip() for block in blocks if block and block.strip()]
+
+    for block in blocks:
+        if block.startswith("#") or block.startswith("**"):
+            transformed_blocks.append(block)
+            continue
+
+        doc = nlp(block)
+        processed_sentences = []
+        last_phrase_inserted = False
+
+        for sent in doc.sents:
+            sentence_text = "".join(token.text_with_ws for token in sent)
+            sentence_doc = nlp(sentence_text)
+
+            # Apply transformations with adjusted probabilities
+            if random.random() < transition_probability and not processed_sentences and len(sentence_doc) > 3:
+                transition_phrase = random.choice(phrase_categories.get("transition") or transition_words)
+                sentence_text = transition_phrase + ", " + sentence_text.lstrip()
+
+            if random.random() < insertion_probability and len(sentence_doc) > 2 and not last_phrase_inserted:
+                chosen_phrase = get_random_phrase(phrase_categories, len(transformed_blocks) == 0)
+                if chosen_phrase:
+                    sentence_text = insert_phrase(sentence_text, chosen_phrase)
+                    last_phrase_inserted = True
+                else:
+                    last_phrase_inserted = False
+
+            if len(sentence_doc) > long_sentence_threshold and random.random() < split_probability:
+                first_part, second_part = split_sentence(sentence_doc)
+                processed_sentences.extend([first_part, second_part])
+            else:
+                processed_sentences.append(sentence_text)
+                last_phrase_inserted = False
+
+        transformed_blocks.append(" ".join(processed_sentences))
+
+    return "\n\n".join(transformed_blocks)
+
+def load_human_phrases(file_path):
     phrase_categories = {
-        "opening": [],
-        "transition": [],
-        "opinion": [],
-        "casual": [],
-        "emphasis": [],
-        "closing": [],
-        "question": [],
-        "explanation": [],
+        "opening": [], "transition": [], "opinion": [],
+        "casual": [], "emphasis": [], "closing": [],
+        "question": [], "explanation": []
     }
-
     loaded_phrases = {}
     try:
-        with open(phrases_file, "r", encoding="utf-8") as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if line and "[" in line and "]" in line:
@@ -100,16 +135,10 @@ def transform_to_human_like(ai_text, writing_samples):
                     if match:
                         category = match.group(1).lower()
                         phrase = match.group(2).strip()
-                        if category in loaded_phrases:
-                            loaded_phrases[category].append(phrase)
-                        else:
-                            loaded_phrases[category] = [phrase]
-                elif line: # If no category label, add to a default list
-                    if "general" not in loaded_phrases:
-                        loaded_phrases["general"] = []
-                    loaded_phrases["general"].append(line)
+                        loaded_phrases.setdefault(category, []).append(phrase)
+                elif line:
+                    loaded_phrases.setdefault("general", []).append(line)
 
-        # Update default categories with loaded phrases if available
         for category, phrases in loaded_phrases.items():
             if category in phrase_categories:
                 phrase_categories[category].extend(phrases)
@@ -117,110 +146,40 @@ def transform_to_human_like(ai_text, writing_samples):
                 for cat in ["casual", "opinion", "transition"]:
                     if cat in phrase_categories:
                         phrase_categories[cat].extend(phrases)
-
     except FileNotFoundError:
-         print(f"Error: {phrases_file} not found. Using default phrases.")
+        print(f"Error: {file_path} not found.")
+    return phrase_categories
 
-    lines = ai_text.splitlines()
-    i = 0
-    last_phrase_inserted = False # Track if a phrase was inserted in the last sentence
-    while i < len(lines):
-        line = lines[i].strip()
-        paragraph = ""  # Initialize paragraph here
+def get_random_phrase(phrase_categories, is_opening):
+    if is_opening and phrase_categories.get("opening"):
+        return random.choice(phrase_categories["opening"])
+    elif random.random() < 0.3 and phrase_categories.get("transition"):
+        return random.choice(phrase_categories["transition"])
+    else:
+        general_phrases = []
+        for cat in ["casual", "opinion", "emphasis", "question", "explanation"]:
+            if phrase_categories.get(cat):
+                general_phrases.extend(phrase_categories[cat])
+        return random.choice(general_phrases) if general_phrases else None
 
-        if not line:
-            transformed_text.append("")
-            i += 1
-            continue
+def insert_phrase(sentence_text, phrase):
+    insert_point = 0
+    possible_points = [m.start() for m in re.finditer(r'[,;]', sentence_text)]
+    if possible_points and random.random() < 0.3:
+        insert_point = random.choice(possible_points) + 1
+        return f"{sentence_text[:insert_point].strip()}, {phrase}{sentence_text[insert_point:]}"
+    else:
+        return f"{phrase}, {sentence_text.lstrip()}"
 
-        if line.startswith("##") or (line.startswith("**") and not re.match(r"^\*\s*\*\*", line)) or re.match(r"^\*\s*\*\*", line):
-            transformed_text.append(line)
-            i += 1
-            last_phrase_inserted = False # Reset flag for headings
-        else:
-            while i < len(lines) and not lines[i].strip().startswith("##") and not lines[i].strip().startswith("**") and not re.match(r"^\*\s*\*\*", lines[i].strip()):
-                if paragraph:
-                    paragraph += "\n" + lines[i]
-                else:
-                    paragraph = lines[i]
-                i += 1
+def split_sentence(sentence_doc):
+    split_candidates = [i for i, token in enumerate(sentence_doc) if token.text in [",", ";", "and", "but", "or", "because"]]
+    if split_candidates and len(sentence_doc) > 5:
+        split_index = random.choice(split_candidates)
+        first_part = "".join(token.text_with_ws for token in sentence_doc[:split_index+1]).strip()
+        second_part = "".join(token.text_with_ws for token in sentence_doc[split_index+1:]).strip()
+        return first_part, second_part
+    else:
+        return "".join(token.text_with_ws for token in sentence_doc).strip(), ""
 
-        if paragraph:
-            doc = nlp(paragraph)
-            processed_paragraph = []
-            for sent in doc.sents:
-                sentence_text = "".join(token.text_with_ws for token in sent)
-                sentence_doc = nlp(sentence_text)
-
-                if random.random() < transition_probability and not processed_paragraph and len(sentence_doc) > 3:
-                    transition_options = phrase_categories.get("transition") or transition_words
-                    if transition_options:
-                        transition_phrase = random.choice(transition_options)
-                        sentence_text = transition_phrase + ", " + sentence_text.lstrip()
-
-                if random.random() < insertion_probability and len(sentence_doc) > 2 and not last_phrase_inserted:
-                    chosen_phrase = None
-                    if i == 0 and random.random() < 0.5: # Beginning of the output
-                        opening_phrases = phrase_categories.get("opening")
-                        if opening_phrases:
-                            chosen_phrase = random.choice(opening_phrases)
-                    elif len(transformed_text) > 0 and random.random() < 0.3: # Between paragraphs
-                        transition_phrases = phrase_categories.get("transition")
-                        if transition_phrases:
-                            chosen_phrase = random.choice(transition_phrases)
-                    elif random.random() < 0.4: # General casual insertion
-                        possible_categories = ["casual", "opinion", "emphasis", "question", "explanation"]
-                        chosen_category = random.choice(possible_categories)
-                        category_phrases = phrase_categories.get(chosen_category)
-                        if category_phrases:
-                            chosen_phrase = random.choice(category_phrases)
-
-                    if chosen_phrase:
-                        insert_point = 0
-                        possible_points = [m.start() for m in re.finditer(r'[,;]', sentence_text)]
-                        if possible_points and random.random() < 0.3:
-                            insert_point = random.choice(possible_points) + 1 # Insert after the punctuation
-
-                        punctuation_chars = ['.', '?', '!']
-                        ends_with_punctuation = chosen_phrase.endswith(tuple(punctuation_chars))
-
-                        if insert_point > 0:
-                            prefix = sentence_text[:insert_point].strip()
-                            suffix = sentence_text[insert_point:]
-                            if suffix.strip() and not ends_with_punctuation:
-                                sentence_text = f"{prefix}, {chosen_phrase}{suffix}"
-                            else:
-                                sentence_text = f"{prefix} {chosen_phrase}{suffix}"
-                        else:
-                            suffix = sentence_text.lstrip()
-                            if suffix and not ends_with_punctuation:
-                                sentence_text = f"{chosen_phrase}, {suffix}"
-                            else:
-                                sentence_text = f"{chosen_phrase} {suffix}"
-                            last_phrase_inserted = True
-                    else:
-                        last_phrase_inserted = False # Don't set if we didn't insert
-
-                if len(sentence_doc) > long_sentence_threshold and random.random() < split_probability:
-                    split_point = -1
-                    split_candidates = [i for i, token in enumerate(sentence_doc) if token.text in [",", ";", "and", "but", "or", "because"]]
-                    if split_candidates and len(sentence_doc) > 5: # Ensure there's enough on both sides
-                        split_index = random.choice(split_candidates)
-                        first_part = "".join(token.text_with_ws for token in sentence_doc[:split_index+1]).strip()
-                        second_part = "".join(token.text_with_ws for token in sentence_doc[split_index+1:]).strip()
-                        processed_paragraph.append(first_part)
-                        processed_paragraph.append(second_part)
-                    else:
-                        processed_paragraph.append(sentence_text)
-                else:
-                    processed_paragraph.append(sentence_text)
-                    last_phrase_inserted = False # Reset if not split
-
-            transformed_text.extend(processed_paragraph)
-
-        elif line: # Handle single non-heading lines
-            transformed_text.append(line)
-            i += 1
-            last_phrase_inserted = False
-
-    return "\n\n".join(transformed_text)
+transition_words = ["Furthermore", "However", "In addition", "On the other hand", "Moreover", "Consequently", "Therefore", "Meanwhile", "Nevertheless", "Despite that", "Although", "Yet", "Still", "So", "Then"]
+nlp = spacy.load("en_core_web_sm")
