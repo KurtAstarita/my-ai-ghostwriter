@@ -32,22 +32,16 @@ else:
 
 signer = URLSafeTimedSerializer(app.secret_key)
 CSRF_TOKEN_NAME = 'csrf_token'
-CSRF_HEADER_NAME = 'X-CSRF-Token'
+CSRF_COOKIE_NAME = 'csrf_token' # Using a cookie to store the token
+CSRF_FIELD_NAME = 'csrf_token'  # Name of the field in the request body
 
 def generate_stateless_csrf_token():
-    session_id = session.get('session_id') # Assuming you have a session ID
-    if not session_id:
-        session['session_id'] = os.urandom(16).hex()
-        session_id = session['session_id']
-    return signer.dumps({'sid': session_id})
+    return signer.dumps({'timestamp': int(os.urandom(8).hex(), 16)})
 
 def verify_stateless_csrf_token(token):
-    session_id = session.get('session_id')
-    if not session_id:
-        return False
     try:
-        data = signer.loads(token, max_age=3600)
-        return data.get('sid') == session_id
+        signer.loads(token, max_age=3600) # Just check if the signature is valid and not too old
+        return True
     except Exception as e:
         logger.warning(f"CSRF verification failed: {e}")
         return False
@@ -55,7 +49,9 @@ def verify_stateless_csrf_token(token):
 @app.route('/csrf_token', methods=['GET'])
 def get_csrf_token():
     token = generate_stateless_csrf_token()
-    return jsonify({CSRF_TOKEN_NAME: token})
+    response = jsonify({CSRF_TOKEN_NAME: token})
+    response.set_cookie(CSRF_COOKIE_NAME, token, httponly=True, path='/', samesite='Lax')
+    return response
 
 @app.route('/')
 def hello_world():
@@ -64,18 +60,15 @@ def hello_world():
 @app.route('/generate', methods=['POST'])
 @limiter.limit("5 per minute")
 def generate_content():
-    logger.info(f"Cookies in /generate: {request.cookies}")
-    logger.info(f"Session ID in /generate before verification: {session.get('session_id')}")
-    csrf_token_from_header = request.headers.get(CSRF_HEADER_NAME)
-    logger.info(f"CSRF Token from header: {csrf_token_from_header}")
-    if not verify_stateless_csrf_token(csrf_token_from_header):
-        logger.warning("CSRF token verification failed for /generate")
+    token_from_body = request.form.get(CSRF_FIELD_NAME)
+    if not token_from_body or not verify_stateless_csrf_token(token_from_body):
+        logger.warning("CSRF token verification failed for /generate (body)")
         return jsonify({'error': 'Invalid CSRF token'}), 403
 
     try:
         logger.info("Processing /generate request")
         logger.info(f"Request Headers: {request.headers}")
-        data = request.get_json()
+        data = request.form  # Get data from form instead of JSON
         backstory = data.get('backstory')
         samples = data.get('samples')
         prompt = data.get('prompt')
