@@ -14,30 +14,31 @@ document.addEventListener('DOMContentLoaded', function() {
         if (parts.length === 2) return parts.pop().split(';').shift();
     }
 
-    function fetchCsrfToken() {
-        return fetch('https://aighostwriter.kurtastarita.com/csrf_token')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+function fetchCsrfToken(retryCount = 0, maxRetries = 3) {
+    return fetch('https://aighostwriter.kurtastarita.com/csrf_token')
+        .then(response => {
+            if (!response.ok) {
+                if (retryCount < maxRetries) {
+                    console.warn(`Error fetching CSRF token (status: ${response.status}), retrying in 1 second...`);
+                    return new Promise(resolve => setTimeout(resolve, 1000)).then(() => fetchCsrfToken(retryCount + 1, maxRetries));
                 }
-                return response.json();
-            })
-            .then(data => {
-                csrfToken = data.csrf_token;
-                console.log('CSRF Token fetched:', csrfToken);
-                // The token is also set as a cookie
-                // Only attach the submit listener after the token is fetched
-                generateForm.addEventListener('submit', generateContent);
-            })
-            .catch(error => {
-                console.error('Error fetching CSRF token:', error);
-                alert('Failed to fetch CSRF token. The application might not work correctly.');
-                // Optionally, disable the generate button here
-                if (generateButton) {
-                    generateButton.disabled = true;
-                }
-            });
-    }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            csrfToken = data.csrf_token;
+            console.log('CSRF Token fetched:', csrfToken);
+            generateForm.addEventListener('submit', generateContent);
+        })
+        .catch(error => {
+            console.error('Error fetching CSRF token:', error);
+            alert('Failed to fetch CSRF token after multiple retries. The application might not work correctly.');
+            if (generateButton) {
+                generateButton.disabled = true;
+            }
+        });
+}
 
     function generateContent(event) {
         event.preventDefault(); // Prevent default form submission
