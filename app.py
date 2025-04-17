@@ -1,5 +1,5 @@
 import google.generativeai as genai
-from flask import Flask, request, jsonify, session, render_template
+from flask import Flask, request, jsonify, session
 from AiGhostWriter import get_gemini_flash_output, transform_to_human_like
 from flask_cors import CORS
 import os
@@ -39,8 +39,8 @@ def get_csrf_token():
     return jsonify({'csrf_token': 'DISABLED'}) # Return a placeholder
 
 @app.route('/')
-def index():
-    return render_template('index.html')  # This line serves your index.html
+def hello_world():
+    return 'Hello, World!'
 
 @app.route('/generate', methods=['POST'])
 @limiter.limit("5 per minute")
@@ -67,10 +67,12 @@ def generate_content():
         samples = bleach.clean(samples, tags=allowed_tags, attributes=allowed_attributes, strip=True)
         prompt = bleach.clean(prompt, tags=allowed_tags, attributes=allowed_attributes, strip=True)
 
-        # Pass the gemini_model to the get_gemini_flash_output function
+        # Get the raw AI output
         ai_output = get_gemini_flash_output(backstory, samples, prompt, gemini_model)
+
+        # Transform the AI output to be more human-like
         human_like_output = transform_to_human_like(ai_output, samples)
-        logger.info(f"Transformed output: {human_like_output}")  # Ensured logging is inside the try block
+
         return jsonify({'generated_content': human_like_output})
 
     except Exception as e:
