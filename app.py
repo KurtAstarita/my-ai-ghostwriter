@@ -5,14 +5,14 @@ from flask_cors import CORS
 import os
 import logging
 import bleach
-from flask_wtf.csrf import CSRFProtect, generate_csrf, ValidationError
+from flask_wtf.csrf import CSRFProtect, generate_csrf, ValidationError # Import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'your_fallback_secret_key'
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "https://myaighostwriter.kurtastarita.com"}})
-csrf = CSRFProtect(app) # Rename 'srf' to 'csrf'
+csrf = CSRFProtect(app) # Initialize CSRFProtect instance as 'csrf'
 limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 
 logging.basicConfig(level=logging.INFO) # Set logging level to INFO
@@ -32,10 +32,10 @@ else:
     logger.error("GOOGLE_API_KEY environment variable not set!")
     # Potentially return an error response if the API key is crucial
 
-from flask_wtf.csrf import csrf # Make sure this is imported
+# Remove this line: from flask_wtf.csrf import csrf
 
 @app.route('/csrf_token', methods=['GET'])
-@csrf.exempt # Exempt this route from CSRF protection
+@csrf.exempt # Use the 'csrf' instance for the decorator
 def get_csrf_token():
     token = generate_csrf()
     session['_csrf_token'] = token
@@ -47,7 +47,7 @@ def hello_world():
 
 @app.route('/generate', methods=['POST'])
 @limiter.limit("5 per minute")
-@csrf.protect() # Protect this route against CSRF
+@csrf.protect() # Use the 'csrf' instance for the decorator
 def generate_content():
     try:
         logger.info("Processing /generate request")
