@@ -32,12 +32,13 @@ else:
     logger.error("GOOGLE_API_KEY environment variable not set!")
     # Potentially return an error response if the API key is crucial
 
-from flask_wtf.csrf import generate_csrf # Make sure this is imported
+from flask_wtf.csrf import csrf # Make sure this is imported
 
 @app.route('/csrf_token', methods=['GET'])
+@csrf.exempt # Exempt this route from CSRF protection
 def get_csrf_token():
     token = generate_csrf()
-    session['_csrf_token'] = token # We'll still store it in the session for now
+    session['_csrf_token'] = token
     return jsonify({'csrf_token': token})
 
 @app.route('/')
@@ -46,6 +47,7 @@ def hello_world():
 
 @app.route('/generate', methods=['POST'])
 @limiter.limit("5 per minute")
+@csrf.protect() # Protect this route against CSRF
 def generate_content():
     try:
         logger.info("Processing /generate request")
