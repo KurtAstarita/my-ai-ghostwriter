@@ -67,12 +67,10 @@ def generate_content():
         samples = bleach.clean(samples, tags=allowed_tags, attributes=allowed_attributes, strip=True)
         prompt = bleach.clean(prompt, tags=allowed_tags, attributes=allowed_attributes, strip=True)
 
-        # Get the raw AI output
+        # Pass the gemini_model to the get_gemini_flash_output function
         ai_output = get_gemini_flash_output(backstory, samples, prompt, gemini_model)
-
-        # Transform the AI output to be more human-like
         human_like_output = transform_to_human_like(ai_output, samples)
-
+        logger.info(f"Transformed output: {human_like_output}")  # Ensured logging is inside the try block
         return jsonify({'generated_content': human_like_output})
 
     except Exception as e:
