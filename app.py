@@ -1,57 +1,42 @@
 import google.generativeai as genai
-from flask import Flask, request, jsonify, session, render_template, abort
+from flask import Flask, request, jsonify, session
 from AiGhostWriter import get_gemini_flash_output, transform_to_human_like
 from flask_cors import CORS
 import os
 import logging
 import bleach
-from flask_wtf.csrf import CSRFProtect, generate_csrf, ValidationError # We'll remove CSRFProtect for now
+# from flask_wtf.csrf import CSRFProtect, generate_csrf, ValidationError # Comment out import
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from itsdangerous import URLSafeTimedSerializer
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'your_fallback_secret_key'
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "https://myaighostwriter.kurtastarita.com"}})
-# csrf = CSRFProtect(app) # Removing Flask-WTF CSRF for now
+# csrf = CSRFProtect(app) # Comment out initialization
 limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO) # Set logging level to INFO
 logger = logging.getLogger(__name__)
 allowed_tags = ['p', 'br', 'span']
 allowed_attributes = {}
 
+# Use environment variable for Google API Key
 GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
-gemini_model = None
+gemini_model = None # Initialize gemini_model here
 
 if GOOGLE_API_KEY:
     genai.configure(api_key=GOOGLE_API_KEY)
+    # Initialize the Gemini model here
     gemini_model = genai.GenerativeModel('gemini-2.0-flash')
 else:
     logger.error("GOOGLE_API_KEY environment variable not set!")
-
-signer = URLSafeTimedSerializer(app.secret_key)
-CSRF_TOKEN_NAME = 'csrf_token'
-CSRF_COOKIE_NAME = 'csrf_token' # Using a cookie to store the token
-CSRF_FIELD_NAME = 'csrf_token'  # Name of the field in the request body
-
-def generate_stateless_csrf_token():
-    return signer.dumps({'timestamp': int(os.urandom(8).hex(), 16)})
-
-def verify_stateless_csrf_token(token):
-    try:
-        signer.loads(token, max_age=3600) # Just check if the signature is valid and not too old
-        return True
-    except Exception as e:
-        logger.warning(f"CSRF verification failed: {e}")
-        return False
+    # Potentially return an error response if the API key is crucial
 
 @app.route('/csrf_token', methods=['GET'])
 def get_csrf_token():
-    token = generate_stateless_csrf_token()
-    response = jsonify({CSRF_TOKEN_NAME: token})
-    response.set_cookie(CSRF_COOKIE_NAME, token, httponly=True, path='/', samesite='Lax')
-    return response
+    # token = generate_csrf() # Comment out token generation
+    # session['_csrf_token'] = token # Comment out session storage
+    return jsonify({'csrf_token': 'DISABLED'}) # Return a placeholder
 
 @app.route('/')
 def hello_world():
@@ -60,15 +45,10 @@ def hello_world():
 @app.route('/generate', methods=['POST'])
 @limiter.limit("5 per minute")
 def generate_content():
-    token_from_body = request.form.get(CSRF_FIELD_NAME)
-    if not token_from_body or not verify_stateless_csrf_token(token_from_body):
-        logger.warning("CSRF token verification failed for /generate (body)")
-        return jsonify({'error': 'Invalid CSRF token'}), 403
-
     try:
         logger.info("Processing /generate request")
         logger.info(f"Request Headers: {request.headers}")
-        data = request.form  # Get data from form instead of JSON
+        data = request.get_json()
         backstory = data.get('backstory')
         samples = data.get('samples')
         prompt = data.get('prompt')
@@ -87,7 +67,10 @@ def generate_content():
         samples = bleach.clean(samples, tags=allowed_tags, attributes=allowed_attributes, strip=True)
         prompt = bleach.clean(prompt, tags=allowed_tags, attributes=allowed_attributes, strip=True)
 
+        # Get the raw AI output
         ai_output = get_gemini_flash_output(backstory, samples, prompt, gemini_model)
+
+        # Transform the AI output to be more human-like
         human_like_output = transform_to_human_like(ai_output, samples)
 
         return jsonify({'generated_content': human_like_output})
