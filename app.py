@@ -5,37 +5,31 @@ from flask_cors import CORS
 import os
 import logging
 import bleach
-from flask_wtf.csrf import CSRFProtect, generate_csrf, ValidationError # Import CSRFProtect
+from flask_wtf.csrf import CSRFProtect, generate_csrf, ValidationError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'your_fallback_secret_key'
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "https://myaighostwriter.kurtastarita.com"}})
-csrf = CSRFProtect(app) # Initialize CSRFProtect instance as 'csrf'
+csrf = CSRFProtect(app)
 limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 
-logging.basicConfig(level=logging.INFO) # Set logging level to INFO
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 allowed_tags = ['p', 'br', 'span']
 allowed_attributes = {}
 
-# Use environment variable for Google API Key
 GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
-gemini_model = None # Initialize gemini_model here
+gemini_model = None
 
 if GOOGLE_API_KEY:
     genai.configure(api_key=GOOGLE_API_KEY)
-    # Initialize the Gemini model here
     gemini_model = genai.GenerativeModel('gemini-2.0-flash')
 else:
     logger.error("GOOGLE_API_KEY environment variable not set!")
-    # Potentially return an error response if the API key is crucial
-
-# Remove this line: from flask_wtf.csrf import csrf
 
 @app.route('/csrf_token', methods=['GET'])
-@csrf.exempt # Use the 'csrf' instance for the decorator
 def get_csrf_token():
     token = generate_csrf()
     session['_csrf_token'] = token
@@ -47,7 +41,7 @@ def hello_world():
 
 @app.route('/generate', methods=['POST'])
 @limiter.limit("5 per minute")
-@csrf.protect() # Use the 'csrf' instance for the decorator
+@csrf.protect()
 def generate_content():
     try:
         logger.info("Processing /generate request")
@@ -71,10 +65,7 @@ def generate_content():
         samples = bleach.clean(samples, tags=allowed_tags, attributes=allowed_attributes, strip=True)
         prompt = bleach.clean(prompt, tags=allowed_tags, attributes=allowed_attributes, strip=True)
 
-        # Get the raw AI output
         ai_output = get_gemini_flash_output(backstory, samples, prompt, gemini_model)
-
-        # Transform the AI output to be more human-like
         human_like_output = transform_to_human_like(ai_output, samples)
 
         return jsonify({'generated_content': human_like_output})
