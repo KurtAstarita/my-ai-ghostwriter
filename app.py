@@ -12,7 +12,7 @@ from flask_limiter.util import get_remote_address
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'your_fallback_secret_key'
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "https://myaighostwriter.kurtastarita.com"}})
-# csrf = CSRFProtect(app) # Comment out initialization
+srf = CSRFProtect(app)
 limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 
 logging.basicConfig(level=logging.INFO) # Set logging level to INFO
@@ -32,11 +32,13 @@ else:
     logger.error("GOOGLE_API_KEY environment variable not set!")
     # Potentially return an error response if the API key is crucial
 
+from flask_wtf.csrf import generate_csrf # Make sure this is imported
+
 @app.route('/csrf_token', methods=['GET'])
 def get_csrf_token():
-    # token = generate_csrf() # Comment out token generation
-    # session['_csrf_token'] = token # Comment out session storage
-    return jsonify({'csrf_token': 'DISABLED'}) # Return a placeholder
+    token = generate_csrf()
+    session['_csrf_token'] = token # We'll still store it in the session for now
+    return jsonify({'csrf_token': token})
 
 @app.route('/')
 def hello_world():
