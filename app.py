@@ -1,18 +1,18 @@
 import google.generativeai as genai
-from flask import Flask, request, jsonify, session, render_template # Import render_template
+from flask import Flask, request, jsonify, session
 from AiGhostWriter import get_gemini_flash_output, transform_to_human_like
 from flask_cors import CORS
 import os
 import logging
 import bleach
-from flask_wtf.csrf import CSRFProtect, generate_csrf, ValidationError
+# from flask_wtf.csrf import CSRFProtect, generate_csrf, ValidationError # Comment out import
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or 'your_fallback_secret_key'
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "https://myaighostwriter.kurtastarita.com"}})
-csrf = CSRFProtect(app)
+# csrf = CSRFProtect(app) # Comment out initialization
 limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 
 logging.basicConfig(level=logging.INFO) # Set logging level to INFO
@@ -32,17 +32,19 @@ else:
     logger.error("GOOGLE_API_KEY environment variable not set!")
     # Potentially return an error response if the API key is crucial
 
+@app.route('/csrf_token', methods=['GET'])
+def get_csrf_token():
+    # token = generate_csrf() # Comment out token generation
+    # session['_csrf_token'] = token # Comment out session storage
+    return jsonify({'csrf_token': 'DISABLED'}) # Return a placeholder
+
 @app.route('/')
-def index():
-    return render_template('index.html') # Ensure you have an index.html file with the form
+def hello_world():
+    return 'Hello, World!'
 
 @app.route('/generate', methods=['POST'])
-def generate_content_route():
-    data = request.get_json()
-    backstory = bleach.clean(data.get('backstory', ''))
-    samples = bleach.clean(data.get('samples', ''))
-    prompt = bleach.clean(data.get('prompt', ''))
-    model_name = data.get('model', 'gemini-pro')
+@limiter.limit("5 per minute")
+def generate_content():
     try:
         logger.info("Processing /generate request")
         logger.info(f"Request Headers: {request.headers}")
