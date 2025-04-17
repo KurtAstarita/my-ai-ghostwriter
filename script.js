@@ -1,98 +1,85 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const generateButton = document.getElementById('generate-button');
-    const generateForm = document.getElementById('generateForm'); // Get the form element
-    const backstoryInput = document.getElementById('backstory');
-    const samplesInput = document.getElementById('samples');
-    const promptInput = document.getElementById('prompt');
-    const generatedContentDiv = document.getElementById('generatedContent');
-    const copyButton = document.getElementById('copy-button');
-    let csrfToken;
+  const generateButton = document.getElementById('generate-button');
+  const backstoryInput = document.getElementById('backstory');
+  const samplesInput = document.getElementById('samples');
+  const promptInput = document.getElementById('prompt');
+  const generatedContentDiv = document.getElementById('generatedContent');
+  const copyButton = document.getElementById('copy-button'); // Assuming you have a copy button
+  let csrfToken; // Variable to store the CSRF token
 
-    function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-    }
+  function generateContent() {
+    const backstory = backstoryInput.value;
+    const samples = samplesInput.value;
+    const prompt = promptInput.value;
 
-function fetchCsrfToken(retryCount = 0, maxRetries = 3) {
-    return fetch('https://aighostwriter.kurtastarita.com/csrf_token')
-        .then(response => {
-            if (!response.ok) {
-                if (retryCount < maxRetries) {
-                    console.warn(`Error fetching CSRF token (status: ${response.status}), retrying in 1 second...`);
-                    return new Promise(resolve => setTimeout(resolve, 1000)).then(() => fetchCsrfToken(retryCount + 1, maxRetries));
-                }
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            csrfToken = data.csrf_token;
-            console.log('CSRF Token fetched:', csrfToken);
-            generateForm.addEventListener('submit', generateContent);
-        })
-        .catch(error => {
-            console.error('Error fetching CSRF token:', error);
-            alert('Failed to fetch CSRF token after multiple retries. The application might not work correctly.');
-            if (generateButton) {
-                generateButton.disabled = true;
-            }
-        });
-}
+    // Show loading state for generate button
+    generateButton.classList.add('generating');
+    generateButton.disabled = true;
+    if (copyButton) {
+      copyButton.style.display = 'none';
+    }
+    generatedContentDiv.textContent = '';
 
-    function generateContent(event) {
-        event.preventDefault(); // Prevent default form submission
-        const backstory = backstoryInput.value;
-        const samples = samplesInput.value;
-        const prompt = promptInput.value;
-        const csrfTokenFromCookie = getCookie('csrf_token'); // Get the token from the cookie
+    fetch('https://aighostwriter.kurtastarita.com/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // 'X-CSRFToken': csrfToken, // If you re-enable CSRF
+      },
+      body: JSON.stringify({ backstory, samples, prompt }),
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.text().then(text => {
+          throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Hide loading state and show content/copy button
+      generateButton.classList.remove('generating');
+      generateButton.disabled = false;
+      generatedContentDiv.textContent = data.generated_content;
+      if (copyButton && data.generated_content) {
+        copyButton.style.display = 'inline-block'; // Or 'block'
+      }
+    })
+    .catch(error => {
+      // Hide loading state and show error
+      generateButton.classList.remove('generating');
+      generateButton.disabled = false;
+      generatedContentDiv.textContent = 'Error generating content. Please try again.';
+      console.error('Error generating content:', error);
+    });
+  }
 
-        generateButton.classList.add('generating');
-        generateButton.disabled = true;
-        if (copyButton) {
-            copyButton.style.display = 'none';
-        }
-        generatedContentDiv.textContent = '';
+  generateButton.addEventListener('click', generateContent);
 
-        if (!csrfTokenFromCookie) {
-            console.error('CSRF token cookie not found. Cannot submit form.');
-            alert('CSRF token cookie is missing. Please refresh the page.');
-            generateButton.classList.remove('generating');
-            generateButton.disabled = false;
-            return;
-        }
+  if (copyButton) {
+    copyButton.addEventListener('click', function() {
+      const textToCopy = generatedContentDiv.textContent;
+      if (textToCopy) {
+        // Show loading state for copy button
+        copyButton.disabled = true;
+        generatedContentDiv.classList.add('loading');
 
-        const formData = new FormData(generateForm); // Use FormData to easily include the token
-        formData.append('csrf_token', csrfTokenFromCookie); // Add the token to the form data
-
-        fetch('https://aighostwriter.kurtastarita.com/generate', {
-            method: 'POST',
-            body: formData, // Send as form data
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.text().then(text => {
-                    throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            generateButton.classList.remove('generating');
-            generateButton.disabled = false;
-            generatedContentDiv.textContent = data.generated_content;
-            if (copyButton && data.generated_content) {
-                copyButton.style.display = 'inline-block';
-            }
-        })
-        .catch(error => {
-            generateButton.classList.remove('generating');
-            generateButton.disabled = false;
-            generatedContentDiv.textContent = 'Error generating content. Please try again.';
-            console.error('Error generating content:', error);
-        });
-    }
-
-    // Call fetchCsrfToken when the page loads, and the submit listener will be attached after it completes
-    fetchCsrfToken();
+        navigator.clipboard.writeText(textToCopy)
+          .then(() => {
+            // Hide loading state and re-enable button
+            copyButton.disabled = false;
+            generatedContentDiv.classList.remove('loading');
+            alert('Content copied to clipboard!');
+          })
+          .catch(err => {
+            console.error('Failed to copy text: ', err);
+            // Hide loading state and re-enable button
+            generatedContentDiv.classList.remove('loading');
+            alert('Failed to copy content.');
+          });
+      } else {
+        alert('No content to copy.');
+      }
+    });
+  }
 });
