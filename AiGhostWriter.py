@@ -17,7 +17,7 @@ Now, write a response to the following prompt, ensuring it strongly reflects the
 Prompt:
 {prompt}
 
-Write a response in a similar style, as if it were written by the user themselves."""
+Write a response in a similar style, as if it were written by the user themselves, include their nuances, and make the writing as human writen as possible, with human logic, resoning, and context awarness."""
 
     try:
         response = model.generate_content(final_prompt)
